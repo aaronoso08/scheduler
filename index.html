@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Home Assessment Scheduler</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --amber:#D97706; --amber-dark:#92400E; --amber-deep:#451A03;
+  --amber-light:#FEF3C7; --amber-pale:#FFFBEB;
+  --orange:#EA580C; --orange-dark:#7C2D12; --orange-light:#FFEDD5;
+  --green:#15803D; --green-light:#DCFCE7;
+  --red:#B91C1C; --red-light:#FEE2E2; --red-border:#FECACA;
+  --gray-50:#FAFAF9; --gray-100:#F5F5F4; --gray-200:#E7E5E4;
+  --gray-300:#D6D3D1; --gray-400:#A8A29E; --gray-500:#78716C;
+  --gray-700:#44403C; --gray-900:#1C1917; --white:#FFFFFF;
+  --radius:12px; --radius-sm:8px;
+  --shadow:0 1px 3px rgba(0,0,0,0.06),0 4px 12px rgba(0,0,0,0.04);
+  --shadow-md:0 4px 20px rgba(0,0,0,0.10);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Sora',sans-serif;background:var(--gray-50);color:var(--gray-900);min-height:100vh;}
+
+.header{background:linear-gradient(135deg,var(--amber-deep) 0%,var(--orange-dark) 100%);padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:62px;position:sticky;top:0;z-index:100;border-bottom:2px solid var(--amber);}
+.header-brand{display:flex;align-items:center;gap:12px;}
+.header-icon{width:36px;height:36px;background:var(--amber);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.header-title{color:#fff;font-size:16px;font-weight:700;letter-spacing:-0.02em;}
+.header-sub{color:rgba(255,255,255,0.55);font-size:11px;margin-top:1px;}
+.header-actions{display:flex;gap:8px;}
+.hdr-btn{padding:7px 14px;border-radius:var(--radius-sm);font-size:12px;font-weight:600;cursor:pointer;font-family:'Sora',sans-serif;border:none;transition:all 0.15s;display:flex;align-items:center;gap:6px;}
+.hdr-btn-export{background:var(--amber);color:var(--amber-deep);}
+.hdr-btn-export:hover{background:#F59E0B;}
+.hdr-btn-import{background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.3);}
+.hdr-btn-import:hover{background:rgba(255,255,255,0.25);}
+
+.nav{background:var(--white);border-bottom:1px solid var(--gray-200);padding:0 24px;display:flex;gap:2px;}
+.nav-btn{padding:13px 18px;font-size:13px;font-weight:500;color:var(--gray-400);background:none;border:none;cursor:pointer;border-bottom:2px solid transparent;font-family:'Sora',sans-serif;transition:all 0.15s;white-space:nowrap;}
+.nav-btn:hover{color:var(--gray-900);}
+.nav-btn.active{color:var(--amber-dark);border-bottom-color:var(--amber);font-weight:600;}
+
+.main{max-width:920px;margin:0 auto;padding:24px 16px;}
+
+.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:24px;}
+.stat-card{background:var(--white);border-radius:var(--radius);padding:14px 10px;box-shadow:var(--shadow);text-align:center;border-top:3px solid var(--gray-200);}
+.stat-card.s1{border-top-color:var(--amber);}
+.stat-card.s2{border-top-color:var(--orange);}
+.stat-card.s3{border-top-color:var(--green);}
+.stat-card.s4{border-top-color:var(--gray-300);}
+.stat-card.s5{border-top-color:var(--red);}
+.stat-num{font-size:26px;font-weight:700;color:var(--gray-900);font-family:'DM Mono',monospace;}
+.stat-label{font-size:10px;color:var(--gray-400);margin-top:3px;text-transform:uppercase;letter-spacing:0.05em;}
+
+.section-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;}
+.section-hdr h2{font-size:15px;font-weight:600;color:var(--gray-900);}
+.filter-row{display:flex;gap:6px;flex-wrap:wrap;}
+.filter-btn{padding:5px 13px;border-radius:20px;font-size:12px;font-weight:500;border:1px solid var(--gray-300);background:var(--white);color:var(--gray-500);cursor:pointer;font-family:'Sora',sans-serif;transition:all 0.15s;}
+.filter-btn.active{background:var(--amber-deep);color:#fff;border-color:var(--amber-deep);}
+
+.appt-card{background:var(--white);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow);margin-bottom:10px;border-left:4px solid var(--amber-light);transition:box-shadow 0.15s;}
+.appt-card:hover{box-shadow:var(--shadow-md);}
+.appt-card.status-ready{border-left-color:var(--orange);}
+.appt-card.status-submitted{border-left-color:var(--green);}
+.appt-card.status-complete{border-left-color:var(--gray-300);}
+.appt-card.status-cancelled{border-left-color:var(--red);background:#FFFAFA;}
+.appt-card.status-rescheduled{border-left-color:#8B5CF6;background:#FAFAFF;}
+
+.appt-top-row{display:flex;gap:14px;align-items:flex-start;}
+.date-badge{background:linear-gradient(135deg,var(--amber-deep),var(--orange-dark));color:#fff;border-radius:10px;padding:8px 10px;text-align:center;min-width:54px;flex-shrink:0;}
+.date-badge.cancelled-badge{background:linear-gradient(135deg,#7F1D1D,#B91C1C);}
+.date-badge.rescheduled-badge{background:linear-gradient(135deg,#4C1D95,#6D28D9);}
+.date-badge .mo{font-size:9px;text-transform:uppercase;letter-spacing:0.1em;opacity:0.75;}
+.date-badge .dy{font-size:24px;font-weight:700;font-family:'DM Mono',monospace;line-height:1;}
+
+.appt-body{flex:1;min-width:0;}
+.appt-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;}
+.appt-name{font-size:15px;font-weight:600;color:var(--gray-900);}
+.badge{display:inline-block;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:600;}
+.badge-active{background:var(--amber-light);color:var(--amber-dark);}
+.badge-ready{background:var(--orange-light);color:var(--orange-dark);}
+.badge-submitted{background:var(--green-light);color:var(--green);}
+.badge-complete{background:var(--gray-100);color:var(--gray-400);}
+.badge-cancelled{background:var(--red-light);color:var(--red);}
+.badge-rescheduled{background:#EDE9FE;color:#5B21B6;}
+
+.appt-meta{font-size:12px;color:var(--gray-400);margin-bottom:10px;}
+.appt-meta span{margin-right:12px;}
+.reason-note{font-size:11px;color:var(--gray-500);font-style:italic;background:var(--gray-100);padding:5px 10px;border-radius:6px;margin-bottom:8px;}
+
+.steps-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}
+.step{display:flex;align-items:center;gap:5px;padding:5px 11px;border-radius:20px;font-size:11px;font-weight:500;cursor:pointer;border:1px solid var(--gray-300);background:var(--gray-50);color:var(--gray-500);font-family:'Sora',sans-serif;transition:all 0.15s;user-select:none;}
+.step:hover{border-color:var(--amber);color:var(--amber-dark);}
+.step.done{background:var(--green-light);border-color:var(--green);color:var(--green);}
+.step-check{width:14px;height:14px;border-radius:50%;border:1.5px solid currentColor;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:9px;}
+
+.files-section{margin-top:10px;padding-top:10px;border-top:1px solid var(--gray-100);}
+.files-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.files-title{font-size:11px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.05em;}
+.upload-btn{padding:4px 12px;border-radius:var(--radius-sm);font-size:11px;font-weight:600;background:var(--amber-light);color:var(--amber-dark);border:1px solid var(--amber);cursor:pointer;font-family:'Sora',sans-serif;}
+.files-list{display:flex;flex-wrap:wrap;gap:6px;}
+.file-chip{display:flex;align-items:center;gap:6px;padding:4px 10px;border-radius:var(--radius-sm);background:var(--gray-50);border:1px solid var(--gray-200);font-size:11px;color:var(--gray-700);max-width:200px;}
+.file-chip-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;}
+.file-chip-del{color:var(--gray-400);cursor:pointer;font-size:14px;flex-shrink:0;line-height:1;}
+.file-chip-del:hover{color:var(--red);}
+
+.appt-footer{display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid var(--gray-200);}
+.progress-bar{flex:1;height:5px;background:var(--gray-200);border-radius:3px;margin-right:12px;overflow:hidden;}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--amber),var(--orange));border-radius:3px;transition:width 0.3s;}
+.progress-text{font-size:11px;color:var(--gray-400);font-family:'DM Mono',monospace;white-space:nowrap;margin-right:8px;}
+
+.action-btns{display:flex;gap:6px;align-items:center;}
+.action-btn{padding:5px 11px;border-radius:var(--radius-sm);font-size:11px;font-weight:600;cursor:pointer;font-family:'Sora',sans-serif;border:none;transition:all 0.15s;}
+.btn-reschedule{background:#EDE9FE;color:#5B21B6;}
+.btn-reschedule:hover{background:#DDD6FE;}
+.btn-cancel{background:var(--red-light);color:var(--red);}
+.btn-cancel:hover{background:var(--red-border);}
+.btn-pdf{background:var(--amber-light);color:var(--amber-dark);}
+.btn-pdf:hover{background:var(--amber-light);opacity:0.85;}
+.btn-restore{background:var(--green-light);color:var(--green);}
+.btn-restore:hover{opacity:0.85;}
+.del-btn{background:none;border:none;color:var(--gray-300);cursor:pointer;font-size:18px;padding:0 4px;transition:color 0.15s;line-height:1;}
+.del-btn:hover{color:var(--red);}
+
+.empty{text-align:center;padding:52px 16px;color:var(--gray-400);}
+.empty-icon{font-size:44px;margin-bottom:14px;}
+.empty h3{font-size:15px;font-weight:600;margin-bottom:6px;color:var(--gray-500);}
+.empty p{font-size:13px;}
+
+.form-card{background:var(--white);border-radius:var(--radius);padding:22px;box-shadow:var(--shadow);margin-bottom:16px;}
+.form-card h3{font-size:12px;font-weight:700;color:var(--amber-dark);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:18px;border-bottom:2px solid var(--amber-light);padding-bottom:8px;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+.field{display:flex;flex-direction:column;gap:5px;}
+.field label{font-size:12px;font-weight:600;color:var(--gray-700);}
+.field input,.field select,.field textarea{padding:10px 13px;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);font-size:14px;font-family:'Sora',sans-serif;color:var(--gray-900);background:var(--white);transition:border-color 0.15s;outline:none;}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--amber);}
+.field textarea{resize:vertical;min-height:70px;}
+.field-full{grid-column:1/-1;}
+.save-btn{background:linear-gradient(135deg,var(--amber),var(--orange));color:#fff;border:none;border-radius:var(--radius-sm);padding:12px 28px;font-size:14px;font-weight:600;cursor:pointer;font-family:'Sora',sans-serif;transition:opacity 0.15s;}
+.save-btn:hover{opacity:0.9;}
+.toast{background:var(--green-light);color:var(--green);border-radius:var(--radius-sm);padding:12px 16px;font-size:13px;font-weight:600;margin-bottom:16px;display:none;border:1px solid #86EFAC;}
+
+.week-nav{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
+.week-nav-btn{background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius-sm);padding:8px 16px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Sora',sans-serif;color:var(--gray-700);transition:all 0.15s;}
+.week-nav-btn:hover{background:var(--amber-pale);border-color:var(--amber);}
+.week-label{flex:1;text-align:center;font-size:14px;font-weight:600;color:var(--gray-900);}
+.week-today-btn{background:var(--amber);color:var(--amber-deep);border:none;border-radius:var(--radius-sm);padding:8px 16px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Sora',sans-serif;}
+.week-table{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;}
+.week-grid{display:grid;grid-template-columns:64px repeat(5,1fr);}
+.wh{background:linear-gradient(135deg,var(--amber-deep),var(--orange-dark));color:#fff;padding:10px 6px;text-align:center;font-size:11px;font-weight:600;}
+.wh .wh-day{font-size:13px;font-weight:700;}
+.wh .wh-date{font-size:10px;opacity:0.6;margin-top:1px;}
+.wh.today-col{background:linear-gradient(135deg,var(--amber),var(--orange));}
+.wtime{padding:0 8px;font-size:10px;color:var(--gray-400);font-family:'DM Mono',monospace;display:flex;align-items:center;justify-content:flex-end;border-right:1px solid var(--gray-200);background:var(--gray-50);min-height:68px;}
+.wslot{border-right:1px solid var(--gray-100);border-bottom:1px solid var(--gray-100);min-height:68px;padding:4px 5px;}
+.wslot.hour-line{border-bottom-color:var(--gray-200);}
+.wslot.has-appt{background:var(--amber-light);}
+.wslot.blocked{background:var(--orange-light);}
+.wslot.today-col{background:#FFFBF0;}
+.wslot.today-col.blocked{background:#FFF0E0;}
+.wslot.cancelled-slot{background:var(--red-light);}
+.wslot.rescheduled-slot{background:#EDE9FE;}
+.slot-text{font-size:10px;color:var(--amber-dark);font-weight:600;line-height:1.4;}
+.blocked-text{font-size:10px;color:var(--orange-dark);font-weight:500;}
+.week-legend{display:flex;gap:16px;padding:12px 16px;border-top:1px solid var(--gray-200);flex-wrap:wrap;}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--gray-500);}
+.legend-dot{width:12px;height:12px;border-radius:3px;}
+
+/* MODALS */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;display:none;align-items:center;justify-content:center;padding:20px;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--white);border-radius:var(--radius);padding:24px;width:100%;max-width:480px;box-shadow:var(--shadow-md);max-height:85vh;overflow-y:auto;}
+.modal-title{font-size:15px;font-weight:700;margin-bottom:16px;color:var(--gray-900);}
+.modal-close{float:right;background:none;border:none;font-size:20px;cursor:pointer;color:var(--gray-400);line-height:1;}
+.drop-zone{border:2px dashed var(--amber);border-radius:var(--radius-sm);padding:28px 16px;text-align:center;cursor:pointer;background:var(--amber-pale);margin-bottom:16px;transition:background 0.15s;}
+.drop-zone:hover{background:var(--amber-light);}
+.drop-zone p{font-size:13px;color:var(--amber-dark);font-weight:500;}
+.drop-zone small{font-size:11px;color:var(--gray-400);margin-top:4px;display:block;}
+.modal-files{display:flex;flex-direction:column;gap:6px;}
+.modal-file-row{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--gray-50);border-radius:var(--radius-sm);border:1px solid var(--gray-200);}
+.modal-file-info{flex:1;min-width:0;}
+.modal-file-name{font-size:13px;font-weight:500;color:var(--gray-900);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.modal-file-size{font-size:11px;color:var(--gray-400);}
+.modal-file-del{background:none;border:none;color:var(--gray-400);cursor:pointer;font-size:18px;flex-shrink:0;transition:color 0.15s;}
+.modal-file-del:hover{color:var(--red);}
+.view-link{font-size:12px;color:var(--amber-dark);cursor:pointer;text-decoration:underline;white-space:nowrap;}
+.modal-label{font-size:12px;font-weight:600;color:var(--gray-700);margin-bottom:5px;display:block;}
+.modal-input{width:100%;padding:10px 13px;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);font-size:14px;font-family:'Sora',sans-serif;color:var(--gray-900);outline:none;margin-bottom:12px;}
+.modal-input:focus{border-color:var(--amber);}
+.modal-textarea{width:100%;padding:10px 13px;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);font-size:13px;font-family:'Sora',sans-serif;color:var(--gray-900);outline:none;resize:vertical;min-height:70px;margin-bottom:16px;}
+.modal-textarea:focus{border-color:var(--amber);}
+.modal-btn-row{display:flex;gap:10px;justify-content:flex-end;}
+.modal-btn{padding:9px 20px;border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;font-family:'Sora',sans-serif;border:none;}
+.modal-btn-primary{background:linear-gradient(135deg,var(--amber),var(--orange));color:#fff;}
+.modal-btn-cancel-style{background:var(--red-light);color:var(--red);}
+.modal-btn-secondary{background:var(--gray-100);color:var(--gray-700);}
+
+.view{display:none;}
+.view.active{display:block;}
+
+@media(max-width:600px){
+  .stats{grid-template-columns:repeat(3,1fr);}
+  .form-row{grid-template-columns:1fr;}
+  .header-actions .hdr-btn span{display:none;}
+  .week-grid{grid-template-columns:46px repeat(5,1fr);}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-brand">
+    <div class="header-icon">🏠</div>
+    <div>
+      <div class="header-title">Home Assessment Scheduler</div>
+      <div class="header-sub">By Aaron Osorio</div>
+    </div>
+  </div>
+  <div class="header-actions">
+    <button class="hdr-btn hdr-btn-import" onclick="document.getElementById('import-input').click()">&#8593; <span>Import Backup</span></button>
+    <input type="file" id="import-input" accept=".json" style="display:none" onchange="importData(event)" />
+    <button class="hdr-btn hdr-btn-export" onclick="exportData()">&#8595; <span>Export Backup</span></button>
+  </div>
+</div>
+
+<nav class="nav">
+  <button class="nav-btn active" onclick="showView('dashboard',this)">Dashboard</button>
+  <button class="nav-btn" onclick="showView('new',this)">+ New Appointment</button>
+  <button class="nav-btn" onclick="showView('week',this)">Week View</button>
+</nav>
+
+<div class="main">
+
+  <!-- DASHBOARD -->
+  <div class="view active" id="view-dashboard">
+    <div class="stats">
+      <div class="stat-card s1"><div class="stat-num" id="s-active">0</div><div class="stat-label">Active</div></div>
+      <div class="stat-card s2"><div class="stat-num" id="s-ready">0</div><div class="stat-label">Ready</div></div>
+      <div class="stat-card s3"><div class="stat-num" id="s-submitted">0</div><div class="stat-label">Submitted</div></div>
+      <div class="stat-card s4"><div class="stat-num" id="s-total">0</div><div class="stat-label">Total</div></div>
+      <div class="stat-card s5"><div class="stat-num" id="s-cancelled">0</div><div class="stat-label">Cancelled</div></div>
+    </div>
+    <div class="section-hdr">
+      <h2>Appointments</h2>
+      <div class="filter-row">
+        <button class="filter-btn active" onclick="setFilter('',this)">All</button>
+        <button class="filter-btn" onclick="setFilter('Active',this)">Active</button>
+        <button class="filter-btn" onclick="setFilter('Rescheduled',this)">Rescheduled</button>
+        <button class="filter-btn" onclick="setFilter('Ready to Submit',this)">Ready</button>
+        <button class="filter-btn" onclick="setFilter('Submitted',this)">Submitted</button>
+        <button class="filter-btn" onclick="setFilter('Cancelled',this)">Cancelled</button>
+      </div>
+    </div>
+    <div id="appt-list"></div>
+  </div>
+
+  <!-- NEW APPOINTMENT -->
+  <div class="view" id="view-new">
+    <div class="toast" id="toast">&#10003; Appointment saved!</div>
+    <div class="form-card">
+      <h3>Client Info</h3>
+      <div class="form-row">
+        <div class="field"><label>Last Name *</label><input id="f-last" placeholder="Smith"/></div>
+        <div class="field"><label>First Name *</label><input id="f-first" placeholder="John"/></div>
+      </div>
+      <div class="form-row">
+        <div class="field field-full"><label>Address</label><input id="f-addr" placeholder="123 Oak St, Portland OR"/></div>
+      </div>
+      <div class="form-row">
+        <div class="field"><label>Phone</label><input id="f-phone" placeholder="503-555-0000"/></div>
+        <div class="field"><label>Email</label><input id="f-email" placeholder="client@email.com"/></div>
+      </div>
+    </div>
+    <div class="form-card">
+      <h3>Appointment Details</h3>
+      <div class="form-row">
+        <div class="field"><label>Date *</label><input id="f-date" type="date"/></div>
+        <div class="field"><label>Time</label>
+          <select id="f-time">
+            <option>7:00 AM</option><option>7:30 AM</option><option>8:00 AM</option><option>8:30 AM</option>
+            <option>9:00 AM</option><option>9:30 AM</option><option selected>10:00 AM</option><option>10:30 AM</option>
+            <option>11:00 AM</option><option>11:30 AM</option><option>12:00 PM</option><option>12:30 PM</option>
+            <option>1:00 PM</option><option>1:30 PM</option><option>2:00 PM</option><option>2:30 PM</option>
+            <option>3:00 PM</option><option>3:30 PM</option><option>4:00 PM</option><option>4:30 PM</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field field-full"><label>Notes</label><textarea id="f-notes" placeholder="Special instructions, access codes, coordinator info..."></textarea></div>
+      </div>
+    </div>
+    <button class="save-btn" onclick="saveAppt()">Save Appointment</button>
+  </div>
+
+  <!-- WEEK VIEW -->
+  <div class="view" id="view-week">
+    <div class="week-nav">
+      <button class="week-nav-btn" onclick="changeWeek(-1)">&#8592; Prev</button>
+      <div class="week-label" id="week-label"></div>
+      <button class="week-today-btn" onclick="goToday()">Today</button>
+      <button class="week-nav-btn" onclick="changeWeek(1)">Next &#8594;</button>
+    </div>
+    <div class="week-table">
+      <div class="week-grid" id="week-grid"></div>
+      <div class="week-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#FEF3C7;border:1px solid #D97706;"></div>Assessment</div>
+
+        <div class="legend-item"><div class="legend-dot" style="background:#EDE9FE;border:1px solid #7C3AED;"></div>Rescheduled</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#FEE2E2;border:1px solid #B91C1C;"></div>Cancelled</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#FFFBF0;border:1px solid #F59E0B;"></div>Today</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- FILE MODAL -->
+<div class="modal-overlay" id="file-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeFileModal()">&#215;</button>
+    <div class="modal-title" id="file-modal-title">Files &amp; Photos</div>
+    <div class="drop-zone" onclick="document.getElementById('file-input').click()" ondragover="event.preventDefault()" ondrop="handleDrop(event)">
+      <p>Click to upload or drag &amp; drop files here</p>
+      <small>Photos, PDFs, documents — any file type accepted</small>
+    </div>
+    <input type="file" id="file-input" multiple style="display:none" onchange="handleFileInput(event)"/>
+    <div class="modal-files" id="modal-files"></div>
+  </div>
+</div>
+
+<!-- RESCHEDULE MODAL -->
+<div class="modal-overlay" id="reschedule-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeRescheduleModal()">&#215;</button>
+    <div class="modal-title">Reschedule Appointment</div>
+    <label class="modal-label">New Date *</label>
+    <input type="date" id="r-date" class="modal-input"/>
+    <label class="modal-label">New Time *</label>
+    <select id="r-time" class="modal-input">
+      <option>7:00 AM</option><option>7:30 AM</option><option>8:00 AM</option><option>8:30 AM</option>
+      <option>9:00 AM</option><option>9:30 AM</option><option>10:00 AM</option><option>10:30 AM</option>
+      <option>11:00 AM</option><option>11:30 AM</option><option>12:00 PM</option><option>12:30 PM</option>
+      <option>1:00 PM</option><option>1:30 PM</option><option>2:00 PM</option><option>2:30 PM</option>
+      <option>3:00 PM</option><option>3:30 PM</option><option>4:00 PM</option><option>4:30 PM</option>
+    </select>
+    <label class="modal-label">Reason for Rescheduling</label>
+    <textarea id="r-reason" class="modal-textarea" placeholder="e.g. Client requested different time, weather issue..."></textarea>
+    <div class="modal-btn-row">
+      <button class="modal-btn modal-btn-secondary" onclick="closeRescheduleModal()">Cancel</button>
+      <button class="modal-btn modal-btn-primary" onclick="confirmReschedule()">Confirm Reschedule</button>
+    </div>
+  </div>
+</div>
+
+<!-- CANCEL MODAL -->
+<div class="modal-overlay" id="cancel-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeCancelModal()">&#215;</button>
+    <div class="modal-title">Cancel Appointment</div>
+    <p style="font-size:13px;color:var(--gray-500);margin-bottom:16px;">This will mark the appointment as Cancelled and move it out of Active. You can restore it later.</p>
+    <label class="modal-label">Reason for Cancellation *</label>
+    <textarea id="c-reason" class="modal-textarea" placeholder="e.g. Client cancelled, property no longer available..."></textarea>
+    <div class="modal-btn-row">
+      <button class="modal-btn modal-btn-secondary" onclick="closeCancelModal()">Go Back</button>
+      <button class="modal-btn modal-btn-cancel-style" onclick="confirmCancel()">Mark as Cancelled</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const STEPS=['Visit Coordinated','Assessment Done','Photos Saved','PDF Created','Emailed to Coordinator','My Copy Saved'];
+const BLOCKED={};
+const TIMES=['7:00 AM','8:00 AM','9:00 AM','10:00 AM','11:00 AM','12:00 PM','1:00 PM','2:00 PM','3:00 PM','4:00 PM','5:00 PM'];
+
+let appts=JSON.parse(localStorage.getItem('ha_v4')||'[]');
+let filter='';
+let weekOffset=0;
+let activeModalId=null;
+let activeActionId=null;
+
+function persist(){localStorage.setItem('ha_v4',JSON.stringify(appts));}
+
+function exportData(){
+  const blob=new Blob([JSON.stringify(appts,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download=`HomeAssessments_Backup_${new Date().toISOString().split('T')[0]}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importData(e){
+  const file=e.target.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(ev){
+    try{
+      const data=JSON.parse(ev.target.result);
+      if(!Array.isArray(data)){alert('Invalid backup file.');return;}
+      if(!confirm(`Load ${data.length} appointments from backup? This replaces current data.`))return;
+      appts=data;persist();renderList();updateStats();
+      alert('Backup restored!');
+    }catch(err){alert('Could not read file.');}
+  };
+  reader.readAsText(file);
+  e.target.value='';
+}
+
+function showView(id,btn){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('view-'+id).classList.add('active');
+  btn.classList.add('active');
+  if(id==='dashboard'){renderList();updateStats();}
+  if(id==='week')renderWeek();
+}
+
+function setFilter(f,btn){
+  filter=f;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderList();
+}
+
+function getStatus(a){
+  if(a.cancelled)return'Cancelled';
+  if(a.rescheduled)return'Rescheduled';
+  const done=STEPS.filter(s=>a.steps[s]).length;
+  if(done===STEPS.length)return'Complete';
+  if(done>=4)return'Submitted';
+  if(done>=3)return'Ready to Submit';
+  return'Active';
+}
+
+function badgeClass(s){
+  return{'Active':'badge-active','Ready to Submit':'badge-ready','Submitted':'badge-submitted',
+    'Complete':'badge-complete','Cancelled':'badge-cancelled','Rescheduled':'badge-rescheduled'}[s]||'badge-active';
+}
+function cardClass(s){
+  return{'Ready to Submit':'status-ready','Submitted':'status-submitted','Complete':'status-complete',
+    'Cancelled':'status-cancelled','Rescheduled':'status-rescheduled'}[s]||'';
+}
+function getMD(d){
+  if(!d)return{m:'',d:''};
+  const dt=new Date(d+'T12:00:00');
+  return{m:dt.toLocaleDateString('en-US',{month:'short'}).toUpperCase(),d:dt.getDate()};
+}
+function fileIcon(name){
+  const ext=(name.split('.').pop()||'').toLowerCase();
+  if(['jpg','jpeg','png','gif','webp','heic'].includes(ext))return'🖼';
+  if(ext==='pdf')return'📄';
+  if(['doc','docx'].includes(ext))return'📝';
+  return'📎';
+}
+function formatBytes(b){
+  if(b<1024)return b+' B';
+  if(b<1048576)return Math.round(b/1024)+' KB';
+  return(b/1048576).toFixed(1)+' MB';
+}
+
+function renderList(){
+  const el=document.getElementById('appt-list');
+  let list=appts.map(a=>({...a,_status:getStatus(a)}));
+  if(filter)list=list.filter(a=>a._status===filter);
+  list.sort((a,b)=>a.date>b.date?1:-1);
+
+  if(!list.length){
+    el.innerHTML=`<div class="empty"><div class="empty-icon">📋</div><h3>${filter?'No '+filter+' appointments':'No appointments yet'}</h3><p>Add your first one using the button above</p></div>`;
+    return;
+  }
+
+  el.innerHTML=list.map(a=>{
+    const md=getMD(a.date);
+    const status=a._status;
+    const done=STEPS.filter(s=>a.steps[s]).length;
+    const pct=Math.round((done/STEPS.length)*100);
+    const files=a.files||[];
+    const isCancelled=status==='Cancelled';
+    const isRescheduled=status==='Rescheduled';
+    const badgeCls=isCancelled?'cancelled-badge':isRescheduled?'rescheduled-badge':'';
+
+    const steps=STEPS.map(s=>`<button class="step ${a.steps[s]?'done':''}" onclick="toggleStep(${a.id},'${s}')" ${isCancelled?'disabled style="opacity:0.5;cursor:default;"':''}><span class="step-check">${a.steps[s]?'✓':''}</span>${s}</button>`).join('');
+    const fileChips=files.slice(0,3).map((f,i)=>`<div class="file-chip"><span>${fileIcon(f.name)}</span><span class="file-chip-name">${f.name}</span><span class="file-chip-del" onclick="removeFile(${a.id},${i})">&#215;</span></div>`).join('');
+    const moreFiles=files.length>3?`<div style="font-size:11px;color:var(--gray-400);padding:4px 8px;">+${files.length-3} more</div>`:'';
+
+    const reschedInfo=a.rescheduleHistory&&a.rescheduleHistory.length>0?
+      `<div class="reason-note">&#128197; Rescheduled from ${a.rescheduleHistory[a.rescheduleHistory.length-1].oldDate} at ${a.rescheduleHistory[a.rescheduleHistory.length-1].oldTime}${a.rescheduleHistory[a.rescheduleHistory.length-1].reason?' — '+a.rescheduleHistory[a.rescheduleHistory.length-1].reason:''}</div>`:'';
+    const cancelInfo=a.cancelReason?`<div class="reason-note">&#10060; Cancelled: ${a.cancelReason}</div>`:'';
+
+    const actionBtns=isCancelled?
+      `<button class="action-btn btn-restore" onclick="restoreAppt(${a.id})">Restore</button>`:
+      `<button class="action-btn btn-reschedule" onclick="openRescheduleModal(${a.id})">Reschedule</button>
+       <button class="action-btn btn-cancel" onclick="openCancelModal(${a.id})">Cancel Job</button>`;
+
+    return`<div class="appt-card ${cardClass(status)}">
+      <div class="appt-top-row">
+        <div class="date-badge ${badgeCls}"><div class="mo">${md.m}</div><div class="dy">${md.d}</div></div>
+        <div class="appt-body">
+          <div class="appt-top">
+            <div class="appt-name">${a.last}, ${a.first}</div>
+            <span class="badge ${badgeClass(status)}">${status}</span>
+          </div>
+          <div class="appt-meta">
+            <span>${a.time}</span>
+            ${a.address?`<span>${a.address}</span>`:''}
+            ${a.phone?`<span>${a.phone}</span>`:''}
+          </div>
+          ${reschedInfo}${cancelInfo}
+          ${a.notes?`<div style="font-size:12px;color:var(--gray-400);font-style:italic;margin-bottom:8px;">${a.notes}</div>`:''}
+          ${!isCancelled?`<div class="steps-row">${steps}</div>`:''}
+          <div class="files-section">
+            <div class="files-header">
+              <span class="files-title">Photos &amp; Documents ${files.length>0?'('+files.length+')':''}</span>
+              <button class="upload-btn" onclick="openFileModal(${a.id})">+ Add Files</button>
+            </div>
+            ${files.length>0?`<div class="files-list">${fileChips}${moreFiles}</div>`:'<div style="font-size:11px;color:var(--gray-400);">No files attached yet</div>'}
+          </div>
+          <div class="appt-footer">
+            <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+            <div class="progress-text">${done}/${STEPS.length}</div>
+            <div class="action-btns">
+              ${actionBtns}
+              <button class="action-btn btn-pdf" onclick="generatePDF(${a.id})">&#128196; PDF</button>
+              <button class="del-btn" onclick="deleteAppt(${a.id})" title="Delete">&#215;</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleStep(id,step){
+  const a=appts.find(x=>x.id===id);
+  if(!a||a.cancelled)return;
+  a.steps[step]=!a.steps[step];
+  persist();renderList();updateStats();
+}
+
+function deleteAppt(id){
+  if(!confirm('Delete this appointment permanently?'))return;
+  appts=appts.filter(a=>a.id!==id);
+  persist();renderList();updateStats();
+}
+
+function restoreAppt(id){
+  const a=appts.find(x=>x.id===id);
+  if(!a)return;
+  a.cancelled=false;
+  a.cancelReason='';
+  persist();renderList();updateStats();
+}
+
+function updateStats(){
+  const statuses=appts.map(getStatus);
+  document.getElementById('s-active').textContent=statuses.filter(s=>s==='Active'||s==='Rescheduled').length;
+  document.getElementById('s-ready').textContent=statuses.filter(s=>s==='Ready to Submit').length;
+  document.getElementById('s-submitted').textContent=statuses.filter(s=>s==='Submitted'||s==='Complete').length;
+  document.getElementById('s-total').textContent=appts.length;
+  document.getElementById('s-cancelled').textContent=statuses.filter(s=>s==='Cancelled').length;
+}
+
+function saveAppt(){
+  const last=document.getElementById('f-last').value.trim();
+  const first=document.getElementById('f-first').value.trim();
+  const date=document.getElementById('f-date').value;
+  if(!last||!first||!date){alert('Please fill in Last Name, First Name, and Date.');return;}
+  appts.push({
+    id:Date.now(),last,first,
+    address:document.getElementById('f-addr').value.trim(),
+    phone:document.getElementById('f-phone').value.trim(),
+    email:document.getElementById('f-email').value.trim(),
+    date,time:document.getElementById('f-time').value,
+    notes:document.getElementById('f-notes').value.trim(),
+    steps:{},files:[],cancelled:false,rescheduled:false,rescheduleHistory:[]
+  });
+  persist();
+  ['f-last','f-first','f-addr','f-phone','f-email','f-notes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('f-date').value='';
+  const t=document.getElementById('toast');
+  t.style.display='block';
+  setTimeout(()=>t.style.display='none',3000);
+}
+
+/* RESCHEDULE */
+function openRescheduleModal(id){
+  activeActionId=id;
+  document.getElementById('r-date').value='';
+  document.getElementById('r-reason').value='';
+  document.getElementById('reschedule-modal').classList.add('open');
+}
+function closeRescheduleModal(){
+  document.getElementById('reschedule-modal').classList.remove('open');
+  activeActionId=null;
+}
+function confirmReschedule(){
+  const a=appts.find(x=>x.id===activeActionId);
+  if(!a)return;
+  const newDate=document.getElementById('r-date').value;
+  const newTime=document.getElementById('r-time').value;
+  const reason=document.getElementById('r-reason').value.trim();
+  if(!newDate){alert('Please select a new date.');return;}
+  if(!a.rescheduleHistory)a.rescheduleHistory=[];
+  a.rescheduleHistory.push({oldDate:a.date,oldTime:a.time,reason,reschedAt:new Date().toLocaleDateString()});
+  a.date=newDate;
+  a.time=newTime;
+  a.rescheduled=true;
+  a.cancelled=false;
+  persist();closeRescheduleModal();renderList();updateStats();
+}
+
+/* CANCEL */
+function openCancelModal(id){
+  activeActionId=id;
+  document.getElementById('c-reason').value='';
+  document.getElementById('cancel-modal').classList.add('open');
+}
+function closeCancelModal(){
+  document.getElementById('cancel-modal').classList.remove('open');
+  activeActionId=null;
+}
+function confirmCancel(){
+  const a=appts.find(x=>x.id===activeActionId);
+  if(!a)return;
+  const reason=document.getElementById('c-reason').value.trim();
+  if(!reason){alert('Please enter a reason for cancellation.');return;}
+  a.cancelled=true;
+  a.cancelReason=reason;
+  persist();closeCancelModal();renderList();updateStats();
+}
+
+/* FILE MODAL */
+function openFileModal(id){
+  activeModalId=id;
+  const a=appts.find(x=>x.id===id);
+  document.getElementById('file-modal-title').textContent=`Files — ${a.last}, ${a.first}`;
+  renderModalFiles();
+  document.getElementById('file-modal').classList.add('open');
+}
+function closeFileModal(){
+  document.getElementById('file-modal').classList.remove('open');
+  activeModalId=null;
+  renderList();
+}
+document.getElementById('file-modal').addEventListener('click',function(e){if(e.target===this)closeFileModal();});
+document.getElementById('reschedule-modal').addEventListener('click',function(e){if(e.target===this)closeRescheduleModal();});
+document.getElementById('cancel-modal').addEventListener('click',function(e){if(e.target===this)closeCancelModal();});
+
+function renderModalFiles(){
+  const a=appts.find(x=>x.id===activeModalId);
+  if(!a)return;
+  const files=a.files||[];
+  const el=document.getElementById('modal-files');
+  if(!files.length){el.innerHTML='<div style="text-align:center;font-size:13px;color:var(--gray-400);padding:12px;">No files yet — upload above</div>';return;}
+  el.innerHTML=files.map((f,i)=>`<div class="modal-file-row">
+    <span style="font-size:20px;">${fileIcon(f.name)}</span>
+    <div class="modal-file-info">
+      <div class="modal-file-name">${f.name}</div>
+      <div class="modal-file-size">${formatBytes(f.size)}</div>
+    </div>
+    ${f.dataUrl?`<span class="view-link" onclick="viewFile(${i})">View</span>`:''}
+    <button class="modal-file-del" onclick="removeFileModal(${i})">&#215;</button>
+  </div>`).join('');
+}
+
+function handleFileInput(e){processFiles(Array.from(e.target.files));e.target.value='';}
+function handleDrop(e){e.preventDefault();processFiles(Array.from(e.dataTransfer.files));}
+
+function processFiles(files){
+  const a=appts.find(x=>x.id===activeModalId);
+  if(!a)return;
+  if(!a.files)a.files=[];
+  let pending=files.length;
+  files.forEach(file=>{
+    const reader=new FileReader();
+    reader.onload=function(ev){
+      a.files.push({name:file.name,size:file.size,type:file.type,dataUrl:ev.target.result});
+      pending--;
+      if(pending===0){persist();renderModalFiles();}
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function removeFileModal(idx){
+  const a=appts.find(x=>x.id===activeModalId);
+  if(!a)return;
+  a.files.splice(idx,1);persist();renderModalFiles();
+}
+function removeFile(apptId,idx){
+  const a=appts.find(x=>x.id===apptId);
+  if(!a)return;
+  a.files.splice(idx,1);persist();renderList();
+}
+function viewFile(idx){
+  const a=appts.find(x=>x.id===activeModalId);
+  if(!a||!a.files[idx]||!a.files[idx].dataUrl)return;
+  const w=window.open();
+  if(a.files[idx].type&&a.files[idx].type.startsWith('image/')){
+    w.document.write(`<img src="${a.files[idx].dataUrl}" style="max-width:100%;height:auto;"/>`);
+  }else{w.location=a.files[idx].dataUrl;}
+}
+
+/* PDF GENERATION */
+function generatePDF(id){
+  const a=appts.find(x=>x.id===id);
+  if(!a)return;
+  const status=getStatus(a);
+  const files=a.files||[];
+  const done=STEPS.filter(s=>a.steps[s]).length;
+
+  const reschedHtml=a.rescheduleHistory&&a.rescheduleHistory.length>0?
+    `<div style="background:#EDE9FE;border-left:4px solid #7C3AED;padding:10px 14px;border-radius:6px;margin-bottom:12px;font-size:13px;color:#4C1D95;">
+      <strong>Rescheduled:</strong> Originally ${a.rescheduleHistory[a.rescheduleHistory.length-1].oldDate} at ${a.rescheduleHistory[a.rescheduleHistory.length-1].oldTime}
+      ${a.rescheduleHistory[a.rescheduleHistory.length-1].reason?` &mdash; ${a.rescheduleHistory[a.rescheduleHistory.length-1].reason}`:''}
+    </div>`:'';
+
+  const cancelHtml=a.cancelReason?
+    `<div style="background:#FEE2E2;border-left:4px solid #B91C1C;padding:10px 14px;border-radius:6px;margin-bottom:12px;font-size:13px;color:#7F1D1D;">
+      <strong>Cancelled:</strong> ${a.cancelReason}
+    </div>`:'';
+
+  const stepsHtml=STEPS.map(s=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #F5F5F4;">
+      <div style="width:20px;height:20px;border-radius:50%;border:2px solid ${a.steps[s]?'#15803D':'#D6D3D1'};background:${a.steps[s]?'#15803D':'transparent'};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        ${a.steps[s]?'<span style="color:#fff;font-size:11px;font-weight:700;">&#10003;</span>':''}
+      </div>
+      <span style="font-size:13px;color:${a.steps[s]?'#15803D':'#78716C'};font-weight:${a.steps[s]?'600':'400'};">${s}</span>
+    </div>`).join('');
+
+  const photoFiles=files.filter(f=>f.type&&f.type.startsWith('image/')&&f.dataUrl);
+  const docFiles=files.filter(f=>!(f.type&&f.type.startsWith('image/')));
+
+  const photosHtml=photoFiles.length>0?`
+    <div style="margin-top:24px;">
+      <h2 style="font-size:14px;font-weight:700;color:#451A03;text-transform:uppercase;letter-spacing:0.06em;border-bottom:2px solid #FEF3C7;padding-bottom:8px;margin-bottom:16px;">Photos (${photoFiles.length})</h2>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        ${photoFiles.map(f=>`<div style="border:1px solid #E7E5E4;border-radius:8px;overflow:hidden;"><img src="${f.dataUrl}" style="width:100%;height:160px;object-fit:cover;display:block;"/><div style="padding:6px 8px;font-size:11px;color:#78716C;background:#FAFAF9;">${f.name}</div></div>`).join('')}
+      </div>
+    </div>`:'';
+
+  const docsHtml=docFiles.length>0?`
+    <div style="margin-top:24px;">
+      <h2 style="font-size:14px;font-weight:700;color:#451A03;text-transform:uppercase;letter-spacing:0.06em;border-bottom:2px solid #FEF3C7;padding-bottom:8px;margin-bottom:12px;">Documents (${docFiles.length})</h2>
+      ${docFiles.map(f=>`
+        <div style="display:flex;align-items:center;gap:10px;padding:10px;background:#FAFAF9;border:1px solid #E7E5E4;border-radius:8px;margin-bottom:8px;">
+          <span style="font-size:22px;">${fileIcon(f.name)}</span>
+          <div>
+            <div style="font-size:13px;font-weight:600;color:#1C1917;">${f.name}</div>
+            <div style="font-size:11px;color:#A8A29E;">${formatBytes(f.size)}</div>
+          </div>
+          ${f.dataUrl?`<a href="${f.dataUrl}" download="${f.name}" style="margin-left:auto;font-size:12px;color:#D97706;font-weight:600;">Download</a>`:''}
+        </div>`).join('')}
+    </div>`:'';
+
+  const win=window.open('','_blank');
+  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
+    <title>Assessment — ${a.last}, ${a.first}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+      *{box-sizing:border-box;margin:0;padding:0;}
+      body{font-family:'Sora',sans-serif;color:#1C1917;background:#fff;padding:32px;max-width:800px;margin:0 auto;}
+      @media print{body{padding:16px;}.no-print{display:none!important;}}
+    </style>
+  </head><body>
+    <div class="no-print" style="margin-bottom:20px;display:flex;gap:10px;">
+      <button onclick="window.print()" style="background:linear-gradient(135deg,#D97706,#EA580C);color:#fff;border:none;padding:10px 24px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:'Sora',sans-serif;">Print / Save as PDF</button>
+      <button onclick="window.close()" style="background:#F5F5F4;color:#44403C;border:none;padding:10px 20px;border-radius:8px;font-size:14px;cursor:pointer;font-family:'Sora',sans-serif;">Close</button>
+    </div>
+
+    <div style="background:linear-gradient(135deg,#451A03,#7C2D12);color:#fff;border-radius:12px;padding:24px;margin-bottom:24px;">
+      <div style="font-size:11px;opacity:0.6;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px;">Home Assessment Report</div>
+      <div style="font-size:24px;font-weight:700;margin-bottom:4px;">${a.last}, ${a.first}</div>
+      <div style="font-size:14px;opacity:0.8;">${a.date} &nbsp;|&nbsp; ${a.time} &nbsp;|&nbsp; ${status}</div>
+      <div style="font-size:13px;opacity:0.7;margin-top:4px;">By Aaron Osorio</div>
+    </div>
+
+    ${reschedHtml}${cancelHtml}
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px;">
+      <div style="background:#FAFAF9;border:1px solid #E7E5E4;border-radius:10px;padding:16px;">
+        <div style="font-size:10px;color:#A8A29E;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;">Client Details</div>
+        ${a.address?`<div style="font-size:13px;color:#1C1917;margin-bottom:4px;">&#128205; ${a.address}</div>`:''}
+        ${a.phone?`<div style="font-size:13px;color:#1C1917;margin-bottom:4px;">&#128222; ${a.phone}</div>`:''}
+        ${a.email?`<div style="font-size:13px;color:#1C1917;">&#9993; ${a.email}</div>`:''}
+      </div>
+      <div style="background:#FAFAF9;border:1px solid #E7E5E4;border-radius:10px;padding:16px;">
+        <div style="font-size:10px;color:#A8A29E;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;">Summary</div>
+        <div style="font-size:13px;color:#1C1917;margin-bottom:4px;">Steps Completed: <strong>${done}/${STEPS.length}</strong></div>
+        <div style="font-size:13px;color:#1C1917;margin-bottom:4px;">Files Attached: <strong>${files.length}</strong></div>
+        <div style="font-size:13px;color:#1C1917;">Status: <strong>${status}</strong></div>
+      </div>
+    </div>
+
+    ${a.notes?`<div style="background:#FFFBEB;border:1px solid #FEF3C7;border-radius:10px;padding:14px;margin-bottom:24px;font-size:13px;color:#92400E;"><strong>Notes:</strong> ${a.notes}</div>`:''}
+
+    <h2 style="font-size:14px;font-weight:700;color:#451A03;text-transform:uppercase;letter-spacing:0.06em;border-bottom:2px solid #FEF3C7;padding-bottom:8px;margin-bottom:4px;">Job Checklist</h2>
+    <div style="margin-bottom:8px;font-size:12px;color:#A8A29E;">${done} of ${STEPS.length} steps completed</div>
+    ${stepsHtml}
+    ${photosHtml}
+    ${docsHtml}
+
+    <div style="margin-top:32px;padding-top:16px;border-top:1px solid #E7E5E4;font-size:11px;color:#A8A29E;text-align:center;">
+      Generated by Home Assessment Scheduler &nbsp;|&nbsp; By Aaron Osorio &nbsp;|&nbsp; ${new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})}
+    </div>
+  </body></html>`);
+  win.document.close();
+}
+
+/* WEEK VIEW — 2 HOUR BLOCKS */
+function getWeekDays(offset){
+  const now=new Date();
+  const dow=now.getDay();
+  const mon=new Date(now);
+  mon.setDate(now.getDate()-(dow===0?6:dow-1)+offset*7);
+  return Array.from({length:5},(_,i)=>{const d=new Date(mon);d.setDate(mon.getDate()+i);return d;});
+}
+function goToday(){weekOffset=0;renderWeek();}
+function changeWeek(d){weekOffset+=d;renderWeek();}
+
+function renderWeek(){
+  const days=getWeekDays(weekOffset);
+  const todayStr=new Date().toISOString().split('T')[0];
+  document.getElementById('week-label').textContent=
+    days[0].toLocaleDateString('en-US',{month:'long',day:'numeric'})+' – '+
+    days[4].toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+  const dayNames=['Mon','Tue','Wed','Thu','Fri'];
+  let html='<div class="wh"></div>';
+  days.forEach((d,i)=>{
+    const ds=d.toISOString().split('T')[0];
+    html+=`<div class="wh ${ds===todayStr?'today-col':''}"><div class="wh-day">${dayNames[i]}</div><div class="wh-date">${d.getMonth()+1}/${d.getDate()}</div></div>`;
+  });
+  TIMES.forEach(t=>{
+    html+=`<div class="wtime">${t}</div>`;
+    days.forEach(d=>{
+      const ds=d.toISOString().split('T')[0];
+      const isToday=ds===todayStr;
+      const appt=appts.find(a=>a.date===ds&&a.time===t);
+      const isBlocked=!!BLOCKED[t];
+      const isCancelled=appt&&appt.cancelled;
+      const isRescheduled=appt&&appt.rescheduled&&!appt.cancelled;
+      let cls=`wslot${isToday?' today-col':''}`;
+      if(appt&&isCancelled)cls+=' cancelled-slot';
+      else if(appt&&isRescheduled)cls+=' rescheduled-slot';
+      else if(appt)cls+=' has-appt';
+      else if(isBlocked)cls+=' blocked';
+      let inner='';
+      if(appt)inner=`<div class="slot-text">${appt.last}, ${appt.first}${isCancelled?' (Cancelled)':isRescheduled?' (Rescheduled)':''}</div><div style="font-size:9px;color:var(--gray-400);margin-top:2px;">2 hrs</div>`;
+      else if(isBlocked)inner=`<div class="blocked-text">${BLOCKED[t]}</div>`;
+      html+=`<div class="${cls}">${inner}</div>`;
+    });
+  });
+  document.getElementById('week-grid').innerHTML=html;
+}
+
+renderList();
+updateStats();
+</script>
+</body>
+</html>
