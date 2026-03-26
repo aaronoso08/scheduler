@@ -4,1072 +4,1336 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Home Assessment Scheduler</title>
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-:root{
-  --amber:#D97706;--amber-dark:#92400E;--amber-deep:#451A03;
-  --amber-light:#FEF3C7;--amber-pale:#FFFBEB;
-  --orange:#EA580C;--orange-dark:#7C2D12;--orange-light:#FFEDD5;
-  --green:#15803D;--green-light:#DCFCE7;
-  --red:#B91C1C;--red-light:#FEE2E2;--red-border:#FECACA;
-  --purple:#5B21B6;--purple-light:#EDE9FE;
-  --gray-50:#FAFAF9;--gray-100:#F5F5F4;--gray-200:#E7E5E4;
-  --gray-300:#D6D3D1;--gray-400:#A8A29E;--gray-500:#78716C;
-  --gray-700:#44403C;--gray-900:#1C1917;--white:#FFFFFF;
-  --radius:12px;--radius-sm:8px;
-  --shadow:0 1px 3px rgba(0,0,0,0.06),0 4px 12px rgba(0,0,0,0.04);
-  --shadow-md:0 4px 20px rgba(0,0,0,0.12);
+:root {
+  --brand:        #6B2D0F;
+  --brand-mid:    #8B3A12;
+  --brand-light:  #A0522D;
+  --accent:       #E87A2A;
+  --accent-light: #F59E0B;
+  --bg:           #F7F3EF;
+  --surface:      #FFFFFF;
+  --surface2:     #FDF8F4;
+  --border:       #E8DDD4;
+  --border-dark:  #D4C4B0;
+  --text:         #1C1209;
+  --text-2:       #5C4033;
+  --text-3:       #9C7B6B;
+  --green:        #16A34A;
+  --green-bg:     #DCFCE7;
+  --red:          #DC2626;
+  --red-bg:       #FEE2E2;
+  --yellow:       #D97706;
+  --yellow-bg:    #FEF3C7;
+  --blue:         #1D4ED8;
+  --blue-bg:      #DBEAFE;
+  --shadow-sm:    0 1px 3px rgba(107,45,15,0.08);
+  --shadow:       0 4px 12px rgba(107,45,15,0.12);
+  --shadow-lg:    0 12px 32px rgba(107,45,15,0.18);
+  --radius:       10px;
+  --radius-lg:    14px;
 }
-*{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'Sora',sans-serif;background:var(--gray-50);color:var(--gray-900);min-height:100vh;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px}
 
-/* HEADER */
-.header{background:linear-gradient(135deg,var(--amber-deep),var(--orange-dark));padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:62px;position:sticky;top:0;z-index:200;border-bottom:2px solid var(--amber);}
-.header-brand{display:flex;align-items:center;gap:12px;}
-.header-icon{width:36px;height:36px;background:var(--amber);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;}
-.header-title{color:#fff;font-size:16px;font-weight:700;letter-spacing:-0.02em;}
-.header-sub{color:rgba(255,255,255,0.55);font-size:11px;margin-top:1px;}
-.header-actions{display:flex;gap:8px;}
-.hdr-btn{padding:7px 14px;border-radius:var(--radius-sm);font-size:12px;font-weight:600;cursor:pointer;font-family:'Sora',sans-serif;border:none;transition:all 0.15s;display:flex;align-items:center;gap:5px;}
-.hdr-btn-export{background:var(--amber);color:var(--amber-deep);}
-.hdr-btn-export:hover{background:#F59E0B;}
-.hdr-btn-import{background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.3);}
-.hdr-btn-import:hover{background:rgba(255,255,255,0.25);}
+/* ── TOPBAR ── */
+.topbar{
+  background:linear-gradient(135deg,var(--brand) 0%,var(--brand-mid) 60%,var(--brand-light) 100%);
+  color:#fff;padding:0 24px;height:58px;display:flex;align-items:center;
+  justify-content:space-between;box-shadow:0 2px 12px rgba(0,0,0,0.25);
+  position:sticky;top:0;z-index:50;
+}
+.topbar-brand{display:flex;align-items:center;gap:12px}
+.topbar-icon{width:36px;height:36px;background:rgba(255,255,255,0.15);border-radius:10px;
+  display:flex;align-items:center;justify-content:center;font-size:1.2rem;
+  border:1px solid rgba(255,255,255,0.2)}
+.topbar-title{font-size:1rem;font-weight:800;letter-spacing:-0.02em}
+.topbar-sub{font-size:0.68rem;opacity:0.65;margin-top:1px}
+.topbar-actions{display:flex;gap:8px;align-items:center}
 
-/* NAV */
-.nav{background:var(--white);border-bottom:1px solid var(--gray-200);padding:0 24px;display:flex;gap:2px;}
-.nav-btn{padding:13px 18px;font-size:13px;font-weight:500;color:var(--gray-400);background:none;border:none;cursor:pointer;border-bottom:2px solid transparent;font-family:'Sora',sans-serif;transition:all 0.15s;white-space:nowrap;}
-.nav-btn:hover{color:var(--gray-900);}
-.nav-btn.active{color:var(--amber-dark);border-bottom-color:var(--amber);font-weight:600;}
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;
+  border:none;cursor:pointer;font-size:0.8rem;font-weight:600;transition:all 0.15s;
+  font-family:inherit;white-space:nowrap}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:#d46b1a;transform:translateY(-1px);box-shadow:var(--shadow)}
+.btn-ghost{background:rgba(255,255,255,0.12);color:#fff;border:1px solid rgba(255,255,255,0.2)}
+.btn-ghost:hover{background:rgba(255,255,255,0.22)}
+.btn-outline{background:var(--surface);color:var(--brand);border:1.5px solid var(--border-dark)}
+.btn-outline:hover{background:var(--surface2);border-color:var(--accent)}
+.btn-danger{background:var(--red);color:#fff}
+.btn-danger:hover{background:#b91c1c}
+.btn-success{background:var(--green);color:#fff}
+.btn-success:hover{background:#15803d}
+.btn-sm{padding:5px 11px;font-size:0.73rem}
+.btn-xs{padding:3px 8px;font-size:0.68rem}
+.btn-icon{width:32px;height:32px;padding:0;justify-content:center;border-radius:8px}
 
-.main{max-width:940px;margin:0 auto;padding:24px 16px;}
+/* ── SUBNAV ── */
+.subnav{background:var(--surface);border-bottom:1px solid var(--border);
+  padding:0 24px;display:flex;align-items:center;gap:4px;height:48px;
+  position:sticky;top:58px;z-index:40;box-shadow:var(--shadow-sm)}
+.subnav-btn{padding:6px 14px;border-radius:6px;border:none;cursor:pointer;
+  font-size:0.8rem;font-weight:600;background:none;color:var(--text-2);
+  display:flex;align-items:center;gap:6px;transition:all 0.15s;font-family:inherit}
+.subnav-btn:hover{background:var(--surface2);color:var(--brand)}
+.subnav-btn.active{background:var(--brand);color:#fff}
+.subnav-divider{width:1px;height:22px;background:var(--border);margin:0 6px}
 
-/* STATS */
-.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:20px;}
-.stat-card{background:var(--white);border-radius:var(--radius);padding:14px 10px;box-shadow:var(--shadow);text-align:center;border-top:3px solid var(--gray-200);cursor:pointer;transition:box-shadow 0.15s;}
-.stat-card:hover{box-shadow:var(--shadow-md);}
-.stat-card.s1{border-top-color:var(--amber);}
-.stat-card.s2{border-top-color:var(--orange);}
-.stat-card.s3{border-top-color:var(--green);}
-.stat-card.s4{border-top-color:var(--gray-300);}
-.stat-card.s5{border-top-color:var(--red);}
-.stat-num{font-size:26px;font-weight:700;color:var(--gray-900);font-family:'DM Mono',monospace;}
-.stat-label{font-size:10px;color:var(--gray-400);margin-top:3px;text-transform:uppercase;letter-spacing:0.05em;}
+/* ── STATS ROW ── */
+.stats-row{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;
+  padding:20px 24px 0;max-width:1200px;margin:0 auto}
+.stat-card{background:var(--surface);border-radius:var(--radius-lg);
+  padding:16px 18px;border:1.5px solid var(--border);
+  box-shadow:var(--shadow-sm);transition:all 0.2s;cursor:default}
+.stat-card:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
+.stat-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.stat-icon{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;
+  justify-content:center;font-size:1rem}
+.stat-icon.orange{background:#FEF3C7;color:var(--yellow)}
+.stat-icon.green{background:var(--green-bg);color:var(--green)}
+.stat-icon.blue{background:var(--blue-bg);color:var(--blue)}
+.stat-icon.gray{background:#F3F4F6;color:#6B7280}
+.stat-icon.red{background:var(--red-bg);color:var(--red)}
+.stat-num{font-size:1.8rem;font-weight:800;color:var(--text);line-height:1}
+.stat-label{font-size:0.7rem;font-weight:600;color:var(--text-3);text-transform:uppercase;
+  letter-spacing:0.06em;margin-top:4px}
 
-/* SEARCH BAR */
-.search-wrap{position:relative;margin-bottom:16px;}
-.search-input{width:100%;padding:11px 16px 11px 42px;border:1.5px solid var(--gray-200);border-radius:var(--radius);font-size:14px;font-family:'Sora',sans-serif;color:var(--gray-900);background:var(--white);outline:none;transition:border-color 0.15s;box-shadow:var(--shadow);}
-.search-input:focus{border-color:var(--amber);}
-.search-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:16px;color:var(--gray-400);pointer-events:none;}
-.search-clear{position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--gray-400);cursor:pointer;font-size:18px;display:none;line-height:1;}
-.search-results-count{font-size:12px;color:var(--gray-400);margin-bottom:10px;display:none;}
+/* ── MAIN AREA ── */
+.main-area{max-width:1200px;margin:0 auto;padding:20px 24px 40px}
 
-/* FILTER ROW */
-.toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;}
-.toolbar h2{font-size:15px;font-weight:600;color:var(--gray-900);}
-.filter-row{display:flex;gap:6px;flex-wrap:wrap;}
-.filter-btn{padding:5px 13px;border-radius:20px;font-size:12px;font-weight:500;border:1px solid var(--gray-300);background:var(--white);color:var(--gray-500);cursor:pointer;font-family:'Sora',sans-serif;transition:all 0.15s;}
-.filter-btn.active{background:var(--amber-deep);color:#fff;border-color:var(--amber-deep);}
+/* ── TOOLBAR ── */
+.toolbar{display:flex;align-items:center;gap:10px;margin-bottom:18px}
+.search-wrap{flex:1;position:relative;max-width:420px}
+.search-wrap input{width:100%;padding:9px 12px 9px 36px;border:1.5px solid var(--border);
+  border-radius:var(--radius);font-size:0.83rem;outline:none;background:var(--surface);
+  font-family:inherit;color:var(--text);transition:all 0.15s}
+.search-wrap input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(232,122,42,0.12)}
+.search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);
+  color:var(--text-3);font-size:0.9rem}
+.filter-pills{display:flex;gap:6px;flex-wrap:wrap}
+.pill{padding:5px 13px;border-radius:20px;border:1.5px solid var(--border);
+  background:var(--surface);font-size:0.75rem;cursor:pointer;font-weight:600;
+  color:var(--text-2);transition:all 0.15s;font-family:inherit}
+.pill:hover{border-color:var(--accent);color:var(--brand)}
+.pill.active{background:var(--brand);color:#fff;border-color:var(--brand)}
 
-/* APPOINTMENT CARDS */
-.appt-card{background:var(--white);border-radius:var(--radius);padding:14px 16px;box-shadow:var(--shadow);margin-bottom:8px;border-left:4px solid var(--amber-light);transition:all 0.15s;cursor:pointer;}
-.appt-card:hover{box-shadow:var(--shadow-md);transform:translateY(-1px);}
-.appt-card.status-ready{border-left-color:var(--orange);}
-.appt-card.status-submitted{border-left-color:var(--green);}
-.appt-card.status-complete{border-left-color:var(--gray-300);}
-.appt-card.status-cancelled{border-left-color:var(--red);background:#FFFAFA;}
-.appt-card.status-rescheduled{border-left-color:var(--purple);background:#FAFAFF;}
+/* ── SECTION TITLE ── */
+.section-title{font-size:1rem;font-weight:800;color:var(--text);margin-bottom:14px;
+  display:flex;align-items:center;gap:8px}
 
-.card-row{display:flex;gap:12px;align-items:center;}
-.date-badge{background:linear-gradient(135deg,var(--amber-deep),var(--orange-dark));color:#fff;border-radius:10px;padding:8px 10px;text-align:center;min-width:52px;flex-shrink:0;}
-.date-badge.cancelled-badge{background:linear-gradient(135deg,#7F1D1D,#B91C1C);}
-.date-badge.rescheduled-badge{background:linear-gradient(135deg,#4C1D95,#6D28D9);}
-.date-badge .mo{font-size:9px;text-transform:uppercase;letter-spacing:0.1em;opacity:0.75;}
-.date-badge .dy{font-size:22px;font-weight:700;font-family:'DM Mono',monospace;line-height:1;}
+/* ── APPOINTMENT CARDS ── */
+.appt-list{display:flex;flex-direction:column;gap:8px}
+.appt-row{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius-lg);
+  padding:14px 16px;display:flex;align-items:center;gap:14px;
+  cursor:pointer;transition:all 0.18s;position:relative;overflow:hidden}
+.appt-row::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;
+  background:var(--accent);border-radius:4px 0 0 4px;transition:width 0.15s}
+.appt-row:hover{border-color:var(--accent);box-shadow:var(--shadow);transform:translateY(-1px)}
+.appt-row:hover::before{width:5px}
+.appt-row.s-ready::before{background:var(--green)}
+.appt-row.s-submitted::before{background:#9CA3AF}
+.appt-row.s-cancelled{opacity:0.6}
+.appt-row.s-cancelled::before{background:var(--red)}
+.appt-row.s-rescheduled::before{background:var(--yellow)}
 
-.card-body{flex:1;min-width:0;}
-.card-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:3px;}
-.card-name{font-size:14px;font-weight:600;color:var(--gray-900);}
-.badge{display:inline-block;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:600;}
-.badge-active{background:var(--amber-light);color:var(--amber-dark);}
-.badge-ready{background:var(--orange-light);color:var(--orange-dark);}
-.badge-submitted{background:var(--green-light);color:var(--green);}
-.badge-complete{background:var(--gray-100);color:var(--gray-400);}
-.badge-cancelled{background:var(--red-light);color:var(--red);}
-.badge-rescheduled{background:var(--purple-light);color:var(--purple);}
+.date-badge{width:52px;min-width:52px;height:56px;background:var(--brand);
+  border-radius:10px;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;color:#fff;flex-shrink:0}
+.date-badge .db-mon{font-size:0.6rem;font-weight:700;text-transform:uppercase;
+  letter-spacing:0.1em;opacity:0.8}
+.date-badge .db-day{font-size:1.4rem;font-weight:800;line-height:1}
 
-.card-meta{font-size:12px;color:var(--gray-400);}
-.card-meta span{margin-right:10px;}
-.card-progress{display:flex;align-items:center;gap:8px;margin-top:6px;}
-.mini-bar{flex:1;height:4px;background:var(--gray-200);border-radius:2px;overflow:hidden;max-width:120px;}
-.mini-fill{height:100%;background:linear-gradient(90deg,var(--amber),var(--orange));border-radius:2px;}
-.mini-text{font-size:10px;color:var(--gray-400);font-family:'DM Mono',monospace;}
-.card-files-count{font-size:10px;color:var(--gray-400);background:var(--gray-100);padding:2px 8px;border-radius:10px;}
+.appt-info{flex:1;min-width:0}
+.appt-name{font-size:0.95rem;font-weight:700;color:var(--text);
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.appt-meta{display:flex;gap:12px;margin-top:4px;flex-wrap:wrap}
+.appt-meta-item{font-size:0.75rem;color:var(--text-3);display:flex;align-items:center;gap:4px}
+.appt-progress{margin-top:8px;display:flex;align-items:center;gap:8px}
+.progress-bar{flex:1;max-width:140px;height:4px;background:var(--border);border-radius:99px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent-light));
+  border-radius:99px;transition:width 0.3s}
+.progress-text{font-size:0.68rem;color:var(--text-3);white-space:nowrap}
+.file-tag{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;
+  background:var(--surface2);border:1px solid var(--border);border-radius:99px;
+  font-size:0.68rem;color:var(--text-3)}
 
-.card-arrow{color:var(--gray-300);font-size:18px;flex-shrink:0;}
+.appt-actions{display:flex;align-items:center;gap:6px}
+.actions-menu{position:relative}
+.actions-dropdown{position:absolute;right:0;top:calc(100% + 4px);background:var(--surface);
+  border:1.5px solid var(--border);border-radius:10px;box-shadow:var(--shadow-lg);
+  min-width:170px;z-index:200;overflow:hidden;display:none}
+.actions-dropdown.open{display:block}
+.action-item{padding:10px 14px;display:flex;align-items:center;gap:10px;
+  cursor:pointer;font-size:0.82rem;font-weight:500;transition:background 0.12s;
+  color:var(--text)}
+.action-item:hover{background:var(--surface2)}
+.action-item.danger{color:var(--red)}
+.action-item.danger:hover{background:var(--red-bg)}
+.action-divider{height:1px;background:var(--border)}
 
-/* DROPDOWN MENU ON CARD */
-.card-actions{position:relative;flex-shrink:0;}
-.dropdown-btn{background:var(--gray-100);border:1px solid var(--gray-200);border-radius:var(--radius-sm);padding:6px 10px;cursor:pointer;font-size:13px;color:var(--gray-700);font-family:'Sora',sans-serif;display:flex;align-items:center;gap:4px;}
-.dropdown-btn:hover{background:var(--amber-light);border-color:var(--amber);}
-.dropdown-menu{position:absolute;right:0;top:calc(100% + 4px);background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius-sm);box-shadow:var(--shadow-md);min-width:170px;z-index:50;overflow:hidden;display:none;}
-.dropdown-menu.open{display:block;}
-.dropdown-item{padding:10px 14px;font-size:13px;cursor:pointer;color:var(--gray-700);display:flex;align-items:center;gap:8px;transition:background 0.1s;font-family:'Sora',sans-serif;}
-.dropdown-item:hover{background:var(--gray-50);}
-.dropdown-item.danger{color:var(--red);}
-.dropdown-item.danger:hover{background:var(--red-light);}
-.dropdown-item.purple{color:var(--purple);}
-.dropdown-item.purple:hover{background:var(--purple-light);}
-.dropdown-divider{height:1px;background:var(--gray-100);margin:4px 0;}
+/* ── BADGE ── */
+.badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:99px;
+  font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em}
+.badge-active{background:#FEF3C7;color:#92400E}
+.badge-ready{background:var(--green-bg);color:#166534}
+.badge-submitted{background:#F3F4F6;color:#6B7280}
+.badge-cancelled{background:var(--red-bg);color:#991B1B}
+.badge-rescheduled{background:#FEF3C7;color:#92400E}
 
-/* EMPTY / TOAST */
-.empty{text-align:center;padding:52px 16px;color:var(--gray-400);}
-.empty-icon{font-size:44px;margin-bottom:14px;}
-.empty h3{font-size:15px;font-weight:600;margin-bottom:6px;color:var(--gray-500);}
-.empty p{font-size:13px;}
-.toast{background:var(--green-light);color:var(--green);border-radius:var(--radius-sm);padding:12px 16px;font-size:13px;font-weight:600;margin-bottom:16px;display:none;border:1px solid #86EFAC;}
+/* ── MODAL ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:300;
+  display:none;align-items:center;justify-content:center;padding:20px;
+  backdrop-filter:blur(2px)}
+.overlay.open{display:flex}
+.modal{background:var(--surface);border-radius:var(--radius-lg);padding:28px;
+  width:100%;max-width:540px;max-height:92vh;overflow-y:auto;
+  box-shadow:var(--shadow-lg);animation:modalIn 0.2s ease}
+.modal.wide{max-width:720px}
+@keyframes modalIn{from{opacity:0;transform:scale(0.96) translateY(8px)}to{opacity:1;transform:none}}
+.modal-header{display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:22px;padding-bottom:14px;border-bottom:2px solid var(--border)}
+.modal-title{font-size:1.05rem;font-weight:800;color:var(--brand)}
+.modal-close{width:30px;height:30px;border-radius:6px;border:none;cursor:pointer;
+  background:var(--surface2);color:var(--text-2);font-size:1rem;
+  display:flex;align-items:center;justify-content:center;transition:all 0.15s}
+.modal-close:hover{background:var(--red-bg);color:var(--red)}
 
-/* FORM */
-.form-card{background:var(--white);border-radius:var(--radius);padding:22px;box-shadow:var(--shadow);margin-bottom:16px;}
-.form-card h3{font-size:12px;font-weight:700;color:var(--amber-dark);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:18px;border-bottom:2px solid var(--amber-light);padding-bottom:8px;}
-.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
-.field{display:flex;flex-direction:column;gap:5px;}
-.field label{font-size:12px;font-weight:600;color:var(--gray-700);}
-.field input,.field select,.field textarea{padding:10px 13px;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);font-size:14px;font-family:'Sora',sans-serif;color:var(--gray-900);background:var(--white);transition:border-color 0.15s;outline:none;}
-.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--amber);}
-.field textarea{resize:vertical;min-height:70px;}
-.field-full{grid-column:1/-1;}
-.save-btn{background:linear-gradient(135deg,var(--amber),var(--orange));color:#fff;border:none;border-radius:var(--radius-sm);padding:12px 28px;font-size:14px;font-weight:600;cursor:pointer;font-family:'Sora',sans-serif;transition:opacity 0.15s;}
-.save-btn:hover{opacity:0.9;}
+/* ── FORM ── */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-group{display:flex;flex-direction:column;gap:5px}
+.form-group.full{grid-column:1/-1}
+.form-label{font-size:0.75rem;font-weight:700;color:var(--text-2);
+  text-transform:uppercase;letter-spacing:0.04em}
+.form-input{padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;
+  font-size:0.85rem;outline:none;font-family:inherit;color:var(--text);
+  background:var(--surface);transition:all 0.15s}
+.form-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(232,122,42,0.12)}
+.form-input::placeholder{color:var(--text-3)}
+.form-actions{display:flex;gap:8px;justify-content:flex-end;
+  margin-top:22px;padding-top:16px;border-top:1.5px solid var(--border)}
 
-/* WEEK VIEW */
-.week-nav{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
-.week-nav-btn{background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius-sm);padding:8px 16px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Sora',sans-serif;color:var(--gray-700);transition:all 0.15s;}
-.week-nav-btn:hover{background:var(--amber-pale);border-color:var(--amber);}
-.week-label{flex:1;text-align:center;font-size:14px;font-weight:600;}
-.week-today-btn{background:var(--amber);color:var(--amber-deep);border:none;border-radius:var(--radius-sm);padding:8px 16px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Sora',sans-serif;}
-.week-table{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;}
-.week-grid{display:grid;grid-template-columns:64px repeat(5,1fr);}
-.wh{background:linear-gradient(135deg,var(--amber-deep),var(--orange-dark));color:#fff;padding:10px 6px;text-align:center;}
-.wh .wh-day{font-size:13px;font-weight:700;}
-.wh .wh-date{font-size:10px;opacity:0.6;margin-top:1px;}
-.wh.today-col{background:linear-gradient(135deg,var(--amber),var(--orange));}
-.wtime{padding:0 8px;font-size:10px;color:var(--gray-400);font-family:'DM Mono',monospace;display:flex;align-items:center;justify-content:flex-end;border-right:1px solid var(--gray-200);background:var(--gray-50);min-height:68px;}
-.wslot{border-right:1px solid var(--gray-100);border-bottom:1px solid var(--gray-100);min-height:68px;padding:5px;cursor:pointer;}
-.wslot.today-col{background:#FFFBF0;}
-.wslot.has-appt{background:var(--amber-light);}
-.wslot.has-appt:hover{background:#FDE68A;}
-.wslot.cancelled-slot{background:var(--red-light);}
-.wslot.rescheduled-slot{background:var(--purple-light);}
-.slot-text{font-size:10px;color:var(--amber-dark);font-weight:600;line-height:1.4;}
-.slot-sub{font-size:9px;color:var(--gray-400);margin-top:2px;}
-.week-legend{display:flex;gap:16px;padding:12px 16px;border-top:1px solid var(--gray-200);flex-wrap:wrap;}
-.legend-item{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--gray-500);}
-.legend-dot{width:12px;height:12px;border-radius:3px;}
+/* ── DETAIL PANEL ── */
+.detail-wrap{display:grid;grid-template-columns:1fr 340px;gap:20px}
+.detail-main{}
+.detail-aside{}
+.detail-header{background:linear-gradient(135deg,var(--brand),var(--brand-light));
+  color:#fff;border-radius:var(--radius-lg);padding:24px;margin-bottom:16px}
+.detail-name{font-size:1.4rem;font-weight:800;margin-bottom:6px}
+.detail-sub{font-size:0.83rem;opacity:0.75;display:flex;align-items:center;gap:6px}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.info-card{background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--radius);padding:12px 14px}
+.info-lbl{font-size:0.65rem;text-transform:uppercase;letter-spacing:0.06em;
+  color:var(--text-3);font-weight:700;margin-bottom:4px}
+.info-val{font-size:0.9rem;font-weight:700;color:var(--text)}
+.detail-section-title{font-size:0.78rem;font-weight:800;color:var(--brand);
+  text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px;
+  padding-bottom:6px;border-bottom:2px solid var(--border)}
 
-/* MODALS */
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:300;display:none;align-items:center;justify-content:center;padding:16px;}
-.modal-overlay.open{display:flex;}
-.modal{background:var(--white);border-radius:var(--radius);padding:0;width:100%;max-width:560px;box-shadow:0 8px 40px rgba(0,0,0,0.18);max-height:90vh;overflow-y:auto;display:flex;flex-direction:column;}
-.modal-header{padding:20px 24px 16px;border-bottom:1px solid var(--gray-100);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--white);z-index:2;}
-.modal-header h2{font-size:16px;font-weight:700;color:var(--gray-900);}
-.modal-close{background:none;border:none;font-size:22px;cursor:pointer;color:var(--gray-400);line-height:1;padding:2px;}
-.modal-close:hover{color:var(--gray-900);}
-.modal-body{padding:20px 24px;flex:1;}
-.modal-footer{padding:16px 24px;border-top:1px solid var(--gray-100);display:flex;gap:10px;justify-content:flex-end;background:var(--white);}
+/* ── CHECKLIST ── */
+.check-list{display:flex;flex-direction:column;gap:2px;margin-bottom:16px}
+.check-section-hdr{font-size:0.68rem;font-weight:800;text-transform:uppercase;
+  letter-spacing:0.08em;color:var(--text-3);padding:10px 0 4px}
+.check-row{display:flex;align-items:center;gap:10px;padding:9px 12px;
+  border-radius:8px;cursor:pointer;transition:background 0.12s;
+  border:1px solid transparent}
+.check-row:hover{background:var(--surface2);border-color:var(--border)}
+.check-row.done{opacity:0.55}
+.check-row.done .check-label{text-decoration:line-through}
+.check-box{width:18px;height:18px;border-radius:5px;border:2px solid var(--border-dark);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  transition:all 0.15s;background:var(--surface)}
+.check-box.checked{background:var(--brand);border-color:var(--brand);color:#fff;font-size:0.7rem}
+.check-label{font-size:0.83rem;color:var(--text)}
 
-/* TICKET MODAL SPECIFIC */
-.ticket-hero{background:linear-gradient(135deg,var(--amber-deep),var(--orange-dark));border-radius:var(--radius-sm);padding:20px;margin-bottom:20px;color:#fff;}
-.ticket-name{font-size:20px;font-weight:700;margin-bottom:4px;}
-.ticket-sub{font-size:13px;opacity:0.75;}
-.ticket-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;}
-.ticket-field{background:var(--gray-50);border-radius:var(--radius-sm);padding:12px;}
-.ticket-field-label{font-size:10px;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;}
-.ticket-field-val{font-size:13px;font-weight:500;color:var(--gray-900);}
-.ticket-section{margin-bottom:20px;}
-.ticket-section-title{font-size:11px;font-weight:700;color:var(--amber-dark);text-transform:uppercase;letter-spacing:0.07em;border-bottom:2px solid var(--amber-light);padding-bottom:6px;margin-bottom:12px;}
-.ticket-step{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--gray-100);}
-.ticket-step:last-child{border-bottom:none;}
-.step-circle{width:20px;height:20px;border-radius:50%;border:2px solid var(--gray-300);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:10px;}
-.step-circle.done{background:var(--green);border-color:var(--green);color:#fff;}
-.step-label{font-size:13px;color:var(--gray-700);}
-.step-label.done{color:var(--green);font-weight:500;}
+/* ── FILES ── */
+.drop-zone{border:2px dashed var(--border-dark);border-radius:var(--radius);
+  padding:24px;text-align:center;cursor:pointer;transition:all 0.2s;
+  background:var(--surface2)}
+.drop-zone:hover,.drop-zone.over{border-color:var(--accent);background:#FEF9F4}
+.drop-zone-icon{font-size:2rem;margin-bottom:8px}
+.drop-zone p{font-size:0.8rem;color:var(--text-3)}
+.file-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:8px;margin-top:10px}
+.file-thumb-card{position:relative;border-radius:8px;overflow:hidden;
+  border:1.5px solid var(--border);background:var(--surface2);cursor:pointer}
+.file-thumb-card img{width:100%;height:70px;object-fit:cover;display:block}
+.file-thumb-card .file-doc{width:100%;height:70px;display:flex;align-items:center;
+  justify-content:center;font-size:1.5rem}
+.file-thumb-card .file-name-small{font-size:0.62rem;padding:3px 5px;
+  color:var(--text-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.file-remove{position:absolute;top:3px;right:3px;width:18px;height:18px;
+  background:rgba(0,0,0,0.55);border-radius:99px;border:none;cursor:pointer;
+  color:#fff;font-size:0.7rem;display:flex;align-items:center;justify-content:center}
 
-/* FILES IN TICKET */
-.files-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px;}
-.file-thumb{border-radius:var(--radius-sm);overflow:hidden;border:1px solid var(--gray-200);cursor:pointer;transition:transform 0.15s;}
-.file-thumb:hover{transform:scale(1.03);}
-.file-thumb img{width:100%;height:80px;object-fit:cover;display:block;}
-.file-thumb-label{font-size:10px;color:var(--gray-500);padding:4px 6px;background:var(--gray-50);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.doc-item{display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--gray-50);border-radius:var(--radius-sm);border:1px solid var(--gray-200);margin-bottom:6px;cursor:pointer;}
-.doc-item:hover{background:var(--amber-pale);}
-.doc-icon{font-size:20px;}
-.doc-info{flex:1;min-width:0;}
-.doc-name{font-size:12px;font-weight:500;color:var(--gray-900);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.doc-size{font-size:10px;color:var(--gray-400);}
-.doc-del{background:none;border:none;color:var(--gray-300);cursor:pointer;font-size:16px;transition:color 0.15s;}
-.doc-del:hover{color:var(--red);}
+/* ── WEEK VIEW ── */
+.week-nav{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.week-nav h2{flex:1;font-size:0.95rem;font-weight:800;text-align:center}
+.week-table{width:100%;border-collapse:collapse;background:var(--surface);
+  border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-sm)}
+.week-table th{background:var(--brand);color:#fff;padding:10px 6px;
+  font-size:0.73rem;font-weight:700;text-align:center}
+.week-table td{border:1px solid var(--border);padding:3px;vertical-align:top;
+  min-height:38px;font-size:0.68rem;color:var(--text-3)}
+.week-table td.time-col{font-size:0.68rem;color:var(--text-3);text-align:right;
+  padding:8px 8px;white-space:nowrap;background:var(--surface2);width:52px}
+.week-event{background:var(--brand);color:#fff;border-radius:5px;
+  padding:3px 6px;margin:1px;font-size:0.68rem;font-weight:600;cursor:pointer;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.week-event.ev-ready{background:var(--green)}
+.week-event.ev-cancelled{background:var(--red)}
+.week-event.ev-rescheduled{background:var(--yellow)}
 
-/* FILE UPLOAD AREA */
-.drop-zone{border:2px dashed var(--amber);border-radius:var(--radius-sm);padding:24px;text-align:center;cursor:pointer;background:var(--amber-pale);transition:background 0.15s;margin-bottom:14px;}
-.drop-zone:hover{background:var(--amber-light);}
-.drop-zone p{font-size:13px;color:var(--amber-dark);font-weight:500;}
-.drop-zone small{font-size:11px;color:var(--gray-400);margin-top:3px;display:block;}
+/* ── MAP ── */
+.map-layout{display:flex;height:calc(100vh - 106px);gap:0;
+  margin:-20px -24px;overflow:hidden}
+#mapEl{flex:1;min-height:400px}
+.map-panel{width:310px;background:var(--surface);border-left:1.5px solid var(--border);
+  display:flex;flex-direction:column;overflow:hidden}
+.map-panel-hdr{background:var(--brand);color:#fff;padding:14px 16px;
+  font-weight:800;font-size:0.88rem;display:flex;align-items:center;gap:8px}
+.map-loc-bar{padding:10px 14px;background:var(--surface2);border-bottom:1px solid var(--border);
+  font-size:0.75rem;display:flex;align-items:center;gap:8px;color:var(--text-2)}
+.loc-dot{width:9px;height:9px;border-radius:50%;background:var(--green);flex-shrink:0}
+.loc-dot.wait{background:var(--yellow);animation:blink 1.2s infinite}
+.loc-dot.err{background:var(--red);animation:none}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.4}}
+.route-bar{padding:12px 14px;background:#FEF9F4;border-bottom:1px solid var(--border);
+  display:none}
+.route-bar.on{display:block}
+.route-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:8px}
+.route-stat{background:var(--surface);border:1px solid var(--border);border-radius:8px;
+  padding:7px 6px;text-align:center}
+.rs-val{font-size:0.95rem;font-weight:800;color:var(--brand)}
+.rs-lbl{font-size:0.6rem;color:var(--text-3);text-transform:uppercase;margin-top:2px}
+.map-client-scroll{flex:1;overflow-y:auto;padding:8px}
+.map-card{background:var(--surface);border:1.5px solid var(--border);border-radius:10px;
+  padding:11px 13px;margin-bottom:7px;cursor:pointer;transition:all 0.15s}
+.map-card:hover{border-color:var(--accent);box-shadow:var(--shadow-sm)}
+.map-card .mc-rank{width:22px;height:22px;background:var(--brand);color:#fff;
+  border-radius:99px;font-size:0.68rem;font-weight:800;display:inline-flex;
+  align-items:center;justify-content:center;margin-right:6px;flex-shrink:0}
+.mc-name{font-weight:700;font-size:0.85rem;display:flex;align-items:center}
+.mc-dist{font-size:0.75rem;color:var(--green);font-weight:700;margin-top:3px}
+.mc-addr{font-size:0.7rem;color:var(--text-3);margin-top:2px}
+.mc-btns{display:flex;gap:5px;margin-top:7px}
 
-/* RESCHEDULE / CANCEL MODALS */
-.modal-label{font-size:12px;font-weight:600;color:var(--gray-700);margin-bottom:5px;display:block;margin-top:12px;}
-.modal-input{width:100%;padding:10px 13px;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);font-size:14px;font-family:'Sora',sans-serif;color:var(--gray-900);outline:none;transition:border-color 0.15s;}
-.modal-input:focus{border-color:var(--amber);}
-.modal-textarea{width:100%;padding:10px 13px;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);font-size:13px;font-family:'Sora',sans-serif;color:var(--gray-900);outline:none;resize:vertical;min-height:80px;margin-top:4px;transition:border-color 0.15s;}
-.modal-textarea:focus{border-color:var(--amber);}
+/* ── IMPORT ── */
+.xl-row{padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;margin-bottom:8px}
+.xl-row .xr-name{font-weight:700;font-size:0.88rem}
+.xl-row .xr-meta{font-size:0.75rem;color:var(--text-3);margin-top:2px}
+.xl-type-btns{display:flex;gap:6px;margin-top:9px;flex-wrap:wrap}
+.xl-type-btn{padding:5px 13px;border-radius:20px;border:2px solid var(--border);
+  cursor:pointer;font-size:0.73rem;font-weight:700;background:var(--surface);
+  transition:all 0.15s;font-family:inherit;color:var(--text-2)}
+.xl-type-btn.sel-made{background:var(--brand);color:#fff;border-color:var(--brand)}
+.xl-type-btn.sel-conf{background:var(--green);color:#fff;border-color:var(--green)}
 
-.modal-btn{padding:9px 20px;border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;font-family:'Sora',sans-serif;border:none;transition:opacity 0.15s;}
-.modal-btn:hover{opacity:0.85;}
-.btn-primary{background:linear-gradient(135deg,var(--amber),var(--orange));color:#fff;}
-.btn-cancel-style{background:var(--red-light);color:var(--red);}
-.btn-secondary{background:var(--gray-100);color:var(--gray-700);}
-.btn-purple{background:var(--purple-light);color:var(--purple);}
-.btn-green{background:var(--green-light);color:var(--green);}
+/* ── TOAST ── */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(12px);
+  background:var(--text);color:#fff;padding:10px 20px;border-radius:10px;
+  font-size:0.83rem;font-weight:600;z-index:9999;opacity:0;
+  transition:all 0.25s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
-.reason-note{font-size:11px;color:var(--gray-500);font-style:italic;background:var(--gray-100);padding:6px 10px;border-radius:6px;margin-bottom:10px;}
+/* ── EMPTY ── */
+.empty{text-align:center;padding:60px 20px;color:var(--text-3)}
+.empty-icon{font-size:3rem;margin-bottom:12px}
+.empty-title{font-size:1rem;font-weight:700;color:var(--text-2);margin-bottom:6px}
 
-.view{display:none;}
-.view.active{display:block;}
+/* ── POPUP ── */
+.leaflet-popup-content{font-family:'Inter',sans-serif;font-size:13px;min-width:190px}
+.popup-name{font-weight:800;font-size:14px;color:var(--brand);margin-bottom:6px}
+.popup-row{margin:3px 0;font-size:12px}
+.popup-actions{display:flex;gap:5px;margin-top:10px}
+.popup-btn{flex:1;padding:5px 8px;border-radius:6px;border:none;cursor:pointer;
+  font-size:11px;font-weight:700;font-family:'Inter',sans-serif}
+.popup-btn-detail{background:var(--brand);color:#fff}
+.popup-btn-route{background:var(--green);color:#fff}
 
-@media(max-width:600px){
-  .stats{grid-template-columns:repeat(3,1fr);}
-  .form-row{grid-template-columns:1fr;}
-  .header-actions .hdr-btn span{display:none;}
-  .week-grid{grid-template-columns:44px repeat(5,1fr);}
-  .ticket-grid{grid-template-columns:1fr;}
-  .files-grid{grid-template-columns:repeat(2,1fr);}
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border-dark);border-radius:99px}
+
+@media(max-width:768px){
+  .stats-row{grid-template-columns:repeat(2,1fr)}
+  .form-grid{grid-template-columns:1fr}
+  .detail-wrap{grid-template-columns:1fr}
+  .topbar-sub{display:none}
 }
 </style>
 </head>
 <body>
 
-<div class="header">
-  <div class="header-brand">
-    <div class="header-icon">🏠</div>
+<div class="toast" id="toast"></div>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-brand">
+    <div class="topbar-icon">🏠</div>
     <div>
-      <div class="header-title">Home Assessment Scheduler</div>
-      <div class="header-sub">By Aaron Osorio</div>
+      <div class="topbar-title">Home Assessment Scheduler</div>
+      <div class="topbar-sub">By Aaron Osorio</div>
     </div>
   </div>
-  <div class="header-actions">
-    <button class="hdr-btn hdr-btn-import" onclick="document.getElementById('import-input').click()">&#8593; <span>Import</span></button>
-    <input type="file" id="import-input" accept=".json" style="display:none" onchange="importData(event)"/>
-    <button class="hdr-btn hdr-btn-export" onclick="exportData()">&#8595; <span>Export Backup</span></button>
+  <div class="topbar-actions">
+    <button class="btn btn-ghost btn-sm" onclick="openModal('importExcelModal')">📊 Import Excel</button>
+    <button class="btn btn-ghost btn-sm" onclick="exportBackup()">↓ Export</button>
+    <button class="btn btn-ghost btn-sm" onclick="importBackup()">↑ Import</button>
+    <button class="btn btn-primary" onclick="openModal('newApptModal')">+ New Appointment</button>
   </div>
 </div>
 
-<nav class="nav">
-  <button class="nav-btn active" onclick="showView('dashboard',this)">Dashboard</button>
-  <button class="nav-btn" onclick="showView('new',this)">+ New Appointment</button>
-  <button class="nav-btn" onclick="showView('week',this)">Week View</button>
-</nav>
+<!-- SUBNAV -->
+<div class="subnav">
+  <button class="subnav-btn active" id="nav-dashboard" onclick="setView('dashboard',this)">📋 Dashboard</button>
+  <button class="subnav-btn" id="nav-week" onclick="setView('week',this)">📅 Week View</button>
+  <button class="subnav-btn" id="nav-map" onclick="setView('map',this)">🗺️ Map View</button>
+  <button class="subnav-btn" id="nav-checklist" onclick="setView('checklist',this)">✅ Checklist</button>
+</div>
 
-<div class="main">
+<!-- STATS -->
+<div class="stats-row" id="statsRow">
+  <div class="stat-card">
+    <div class="stat-top"><div class="stat-icon orange">🔔</div></div>
+    <div class="stat-num" id="statActive">0</div>
+    <div class="stat-label">Active</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-top"><div class="stat-icon green">✅</div></div>
+    <div class="stat-num" id="statReady">0</div>
+    <div class="stat-label">Ready</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-top"><div class="stat-icon blue">📤</div></div>
+    <div class="stat-num" id="statSubmitted">0</div>
+    <div class="stat-label">Submitted</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-top"><div class="stat-icon gray">📁</div></div>
+    <div class="stat-num" id="statTotal">0</div>
+    <div class="stat-label">Total</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-top"><div class="stat-icon red">❌</div></div>
+    <div class="stat-num" id="statCancelled">0</div>
+    <div class="stat-label">Cancelled</div>
+  </div>
+</div>
 
-  <!-- DASHBOARD -->
-  <div class="view active" id="view-dashboard">
-    <div class="stats">
-      <div class="stat-card s1" onclick="setFilter('Active',null)"><div class="stat-num" id="s-active">0</div><div class="stat-label">Active</div></div>
-      <div class="stat-card s2" onclick="setFilter('Ready to Submit',null)"><div class="stat-num" id="s-ready">0</div><div class="stat-label">Ready</div></div>
-      <div class="stat-card s3" onclick="setFilter('Submitted',null)"><div class="stat-num" id="s-submitted">0</div><div class="stat-label">Submitted</div></div>
-      <div class="stat-card s4" onclick="setFilter('',null)"><div class="stat-num" id="s-total">0</div><div class="stat-label">Total</div></div>
-      <div class="stat-card s5" onclick="setFilter('Cancelled',null)"><div class="stat-num" id="s-cancelled">0</div><div class="stat-label">Cancelled</div></div>
-    </div>
-
-    <!-- SEARCH BAR -->
+<!-- MAIN -->
+<div class="main-area" id="mainArea">
+  <!-- TOOLBAR -->
+  <div class="toolbar" id="toolbar">
     <div class="search-wrap">
-      <span class="search-icon">&#128269;</span>
-      <input type="text" class="search-input" id="search-input" placeholder="Search by name, address, phone, or status..." oninput="onSearch(this.value)"/>
-      <button class="search-clear" id="search-clear" onclick="clearSearch()">&#215;</button>
+      <span class="search-icon">🔍</span>
+      <input class="form-input" placeholder="Search by name, address, phone, or status..." oninput="filterAppts(this.value)" />
     </div>
-    <div class="search-results-count" id="search-count"></div>
-
-    <div class="toolbar">
-      <h2 id="list-title">All Appointments</h2>
-      <div class="filter-row">
-        <button class="filter-btn active" onclick="setFilter('',this)">All</button>
-        <button class="filter-btn" onclick="setFilter('Active',this)">Active</button>
-        <button class="filter-btn" onclick="setFilter('Rescheduled',this)">Rescheduled</button>
-        <button class="filter-btn" onclick="setFilter('Ready to Submit',this)">Ready</button>
-        <button class="filter-btn" onclick="setFilter('Submitted',this)">Submitted</button>
-        <button class="filter-btn" onclick="setFilter('Cancelled',this)">Cancelled</button>
-      </div>
-    </div>
-    <div id="appt-list"></div>
-  </div>
-
-  <!-- NEW APPOINTMENT -->
-  <div class="view" id="view-new">
-    <div class="toast" id="toast">&#10003; Appointment saved!</div>
-    <div class="form-card">
-      <h3>Client Info</h3>
-      <div class="form-row">
-        <div class="field"><label>Last Name *</label><input id="f-last" placeholder="Smith"/></div>
-        <div class="field"><label>First Name *</label><input id="f-first" placeholder="John"/></div>
-      </div>
-      <div class="form-row">
-        <div class="field field-full"><label>Address</label><input id="f-addr" placeholder="123 Oak St, Portland OR"/></div>
-      </div>
-      <div class="form-row">
-        <div class="field"><label>Phone</label><input id="f-phone" placeholder="503-555-0000"/></div>
-        <div class="field"><label>Email</label><input id="f-email" placeholder="client@email.com"/></div>
-      </div>
-    </div>
-    <div class="form-card">
-      <h3>Appointment Details</h3>
-      <div class="form-row">
-        <div class="field"><label>Date *</label><input id="f-date" type="date"/></div>
-        <div class="field"><label>Time</label>
-          <select id="f-time">
-            <option>7:00 AM</option><option>7:30 AM</option><option>8:00 AM</option><option>8:30 AM</option>
-            <option>9:00 AM</option><option>9:30 AM</option><option selected>10:00 AM</option><option>10:30 AM</option>
-            <option>11:00 AM</option><option>11:30 AM</option><option>12:00 PM</option><option>12:30 PM</option>
-            <option>1:00 PM</option><option>1:30 PM</option><option>2:00 PM</option><option>2:30 PM</option>
-            <option>3:00 PM</option><option>3:30 PM</option><option>4:00 PM</option><option>4:30 PM</option>
-          </select>
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="field field-full"><label>Notes</label><textarea id="f-notes" placeholder="Special instructions, access codes, coordinator info..."></textarea></div>
-      </div>
-    </div>
-    <button class="save-btn" onclick="saveAppt()">Save Appointment</button>
-  </div>
-
-  <!-- WEEK VIEW -->
-  <div class="view" id="view-week">
-    <div class="week-nav">
-      <button class="week-nav-btn" onclick="changeWeek(-1)">&#8592; Prev</button>
-      <div class="week-label" id="week-label"></div>
-      <button class="week-today-btn" onclick="goToday()">Today</button>
-      <button class="week-nav-btn" onclick="changeWeek(1)">Next &#8594;</button>
-    </div>
-    <div class="week-table">
-      <div class="week-grid" id="week-grid"></div>
-      <div class="week-legend">
-        <div class="legend-item"><div class="legend-dot" style="background:#FEF3C7;border:1px solid #D97706;"></div>Assessment (2hr)</div>
-        <div class="legend-item"><div class="legend-dot" style="background:#EDE9FE;border:1px solid #7C3AED;"></div>Rescheduled</div>
-        <div class="legend-item"><div class="legend-dot" style="background:#FEE2E2;border:1px solid #B91C1C;"></div>Cancelled</div>
-        <div class="legend-item"><div class="legend-dot" style="background:#FFFBF0;border:1px solid #F59E0B;"></div>Today</div>
-      </div>
+    <div class="filter-pills">
+      <button class="pill active" onclick="setFilter('all',this)">All</button>
+      <button class="pill" onclick="setFilter('active',this)">Active</button>
+      <button class="pill" onclick="setFilter('rescheduled',this)">Rescheduled</button>
+      <button class="pill" onclick="setFilter('ready',this)">Ready</button>
+      <button class="pill" onclick="setFilter('submitted',this)">Submitted</button>
+      <button class="pill" onclick="setFilter('cancelled',this)">Cancelled</button>
     </div>
   </div>
 
+  <!-- LIST -->
+  <div class="section-title" id="listTitle">All Appointments</div>
+  <div class="appt-list" id="apptList"></div>
 </div>
 
-<!-- ═══ TICKET MODAL (VIEW APPOINTMENT) ═══ -->
-<div class="modal-overlay" id="ticket-modal">
+<!-- ═══ NEW APPOINTMENT MODAL ═══ -->
+<div class="overlay" id="newApptModal" onclick="overlayClose(event,'newApptModal')">
   <div class="modal">
     <div class="modal-header">
-      <h2 id="ticket-modal-title">Appointment Details</h2>
-      <button class="modal-close" onclick="closeTicket()">&#215;</button>
+      <div class="modal-title">➕ New Appointment</div>
+      <button class="modal-close" onclick="closeModal('newApptModal')">✕</button>
     </div>
-    <div class="modal-body" id="ticket-body"></div>
-    <div class="modal-footer" id="ticket-footer"></div>
+    <div class="form-grid">
+      <div class="form-group"><label class="form-label">Last Name *</label><input class="form-input" id="nLast" placeholder="Last"></div>
+      <div class="form-group"><label class="form-label">First Name *</label><input class="form-input" id="nFirst" placeholder="First"></div>
+      <div class="form-group full"><label class="form-label">Address</label><input class="form-input" id="nAddr" placeholder="123 Main St, Portland OR"></div>
+      <div class="form-group"><label class="form-label">Phone</label><input class="form-input" id="nPhone" placeholder="503-555-0000"></div>
+      <div class="form-group"><label class="form-label">Email</label><input class="form-input" id="nEmail" placeholder="email@example.com"></div>
+      <div class="form-group"><label class="form-label">Date *</label><input class="form-input" id="nDate" type="date"></div>
+      <div class="form-group"><label class="form-label">Time</label><select class="form-input" id="nTime"></select></div>
+      <div class="form-group full"><label class="form-label">Notes</label><textarea class="form-input" id="nNotes" rows="2" placeholder="Any notes..."></textarea></div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-outline" onclick="closeModal('newApptModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveNewAppt()">Save Appointment</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ DETAIL MODAL ═══ -->
+<div class="overlay" id="detailModal" onclick="overlayClose(event,'detailModal')">
+  <div class="modal wide">
+    <div class="modal-header">
+      <div class="modal-title" id="dModalTitle">Appointment Details</div>
+      <button class="modal-close" onclick="closeModal('detailModal')">✕</button>
+    </div>
+    <div class="detail-wrap">
+      <div class="detail-main">
+        <div class="detail-header">
+          <div class="detail-name" id="dName">—</div>
+          <div class="detail-sub" id="dSub">—</div>
+        </div>
+        <div class="info-grid" id="dInfoGrid"></div>
+        <div class="detail-section-title">Job Progress</div>
+        <div class="check-list" id="dChecklist"></div>
+        <div style="display:flex;gap:7px;flex-wrap:wrap">
+          <button class="btn btn-primary btn-sm" onclick="printTicket()">🖨️ Print Ticket</button>
+          <button class="btn btn-success btn-sm" onclick="markReady()">✅ Mark Ready</button>
+          <button class="btn btn-outline btn-sm" onclick="openReschedule()">📅 Reschedule</button>
+          <button class="btn btn-danger btn-sm" onclick="openCancel()">❌ Cancel</button>
+        </div>
+      </div>
+      <div class="detail-aside">
+        <div class="detail-section-title">Files & Photos</div>
+        <div class="drop-zone" id="dropZone"
+          ondragover="dOver(event)" ondragleave="dLeave(event)" ondrop="dDrop(event)"
+          onclick="document.getElementById('fileInput').click()">
+          <div class="drop-zone-icon">📁</div>
+          <p>Click or drag & drop files<br><span style="font-size:0.7rem">Photos, PDFs, Word docs</span></p>
+        </div>
+        <input type="file" id="fileInput" multiple style="display:none" onchange="handleFiles(event)">
+        <div class="file-grid" id="dFileGrid"></div>
+        <div class="detail-section-title" style="margin-top:16px">Notes</div>
+        <div id="dNotes" style="font-size:0.83rem;color:var(--text-2);background:var(--surface2);
+          padding:10px 12px;border-radius:8px;border:1px solid var(--border);min-height:48px"></div>
+      </div>
+    </div>
   </div>
 </div>
 
 <!-- ═══ RESCHEDULE MODAL ═══ -->
-<div class="modal-overlay" id="reschedule-modal">
-  <div class="modal">
-    <div class="modal-header"><h2>Reschedule Appointment</h2><button class="modal-close" onclick="closeRescheduleModal()">&#215;</button></div>
-    <div class="modal-body">
-      <label class="modal-label">New Date *</label>
-      <input type="date" id="r-date" class="modal-input"/>
-      <label class="modal-label">New Time *</label>
-      <select id="r-time" class="modal-input" style="margin-top:4px;">
-        <option>7:00 AM</option><option>7:30 AM</option><option>8:00 AM</option><option>8:30 AM</option>
-        <option>9:00 AM</option><option>9:30 AM</option><option>10:00 AM</option><option>10:30 AM</option>
-        <option>11:00 AM</option><option>11:30 AM</option><option>12:00 PM</option><option>12:30 PM</option>
-        <option>1:00 PM</option><option>1:30 PM</option><option>2:00 PM</option><option>2:30 PM</option>
-        <option>3:00 PM</option><option>3:30 PM</option><option>4:00 PM</option><option>4:30 PM</option>
-      </select>
-      <label class="modal-label">Reason for Rescheduling</label>
-      <textarea id="r-reason" class="modal-textarea" placeholder="e.g. Client requested different time..."></textarea>
+<div class="overlay" id="reschedModal" onclick="overlayClose(event,'reschedModal')">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header">
+      <div class="modal-title">📅 Reschedule</div>
+      <button class="modal-close" onclick="closeModal('reschedModal')">✕</button>
     </div>
-    <div class="modal-footer">
-      <button class="modal-btn btn-secondary" onclick="closeRescheduleModal()">Cancel</button>
-      <button class="modal-btn btn-primary" onclick="confirmReschedule()">Confirm Reschedule</button>
+    <div class="form-grid">
+      <div class="form-group"><label class="form-label">New Date *</label><input class="form-input" id="rsDate" type="date"></div>
+      <div class="form-group"><label class="form-label">New Time</label><select class="form-input" id="rsTime"></select></div>
+      <div class="form-group full"><label class="form-label">Reason</label><textarea class="form-input" id="rsReason" rows="2"></textarea></div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-outline" onclick="closeModal('reschedModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmReschedule()">Confirm Reschedule</button>
     </div>
   </div>
 </div>
 
 <!-- ═══ CANCEL MODAL ═══ -->
-<div class="modal-overlay" id="cancel-modal">
-  <div class="modal">
-    <div class="modal-header"><h2>Cancel Appointment</h2><button class="modal-close" onclick="closeCancelModal()">&#215;</button></div>
-    <div class="modal-body">
-      <p style="font-size:13px;color:var(--gray-500);margin-bottom:16px;">This marks the appointment as Cancelled. You can restore it anytime.</p>
-      <label class="modal-label">Reason for Cancellation *</label>
-      <textarea id="c-reason" class="modal-textarea" placeholder="e.g. Client cancelled, property no longer available..."></textarea>
+<div class="overlay" id="cancelModal" onclick="overlayClose(event,'cancelModal')">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-header">
+      <div class="modal-title">❌ Cancel Appointment</div>
+      <button class="modal-close" onclick="closeModal('cancelModal')">✕</button>
     </div>
-    <div class="modal-footer">
-      <button class="modal-btn btn-secondary" onclick="closeCancelModal()">Go Back</button>
-      <button class="modal-btn btn-cancel-style" onclick="confirmCancel()">Mark as Cancelled</button>
+    <p style="font-size:0.83rem;color:var(--text-3);margin-bottom:16px">Marks as Cancelled. You can restore it anytime.</p>
+    <div class="form-group"><label class="form-label">Reason *</label><textarea class="form-input" id="cancelReason" rows="2"></textarea></div>
+    <div class="form-actions">
+      <button class="btn btn-outline" onclick="closeModal('cancelModal')">Go Back</button>
+      <button class="btn btn-danger" onclick="confirmCancel()">Mark as Cancelled</button>
     </div>
   </div>
 </div>
 
-<!-- ═══ FILE UPLOAD MODAL ═══ -->
-<div class="modal-overlay" id="file-modal">
-  <div class="modal">
-    <div class="modal-header"><h2 id="file-modal-title">Upload Files</h2><button class="modal-close" onclick="closeFileModal()">&#215;</button></div>
-    <div class="modal-body">
-      <div class="drop-zone" onclick="document.getElementById('file-input').click()" ondragover="event.preventDefault()" ondrop="handleDrop(event)">
-        <p>Click to upload or drag &amp; drop</p>
-        <small>Photos (JPG, PNG), PDFs, Word docs — any file type</small>
-      </div>
-      <input type="file" id="file-input" multiple style="display:none" onchange="handleFileInput(event)"/>
-      <div id="modal-files"></div>
+<!-- ═══ EXCEL IMPORT MODAL ═══ -->
+<div class="overlay" id="importExcelModal" onclick="overlayClose(event,'importExcelModal')">
+  <div class="modal wide">
+    <div class="modal-header">
+      <div class="modal-title">📊 Import from Excel</div>
+      <button class="modal-close" onclick="closeModal('importExcelModal')">✕</button>
     </div>
-    <div class="modal-footer">
-      <button class="modal-btn btn-primary" onclick="closeFileModal()">Done</button>
+    <p style="font-size:0.82rem;color:var(--text-3);margin-bottom:14px">Upload your Home Assessment Tracker .xlsx. Mark each row as <strong>Appointment Made</strong> or <strong>Confirmed</strong> before importing.</p>
+    <div class="drop-zone" onclick="document.getElementById('xlInput').click()"
+      ondragover="dOver(event)" ondrop="xlDrop(event)">
+      <div class="drop-zone-icon">📊</div>
+      <p>Click to upload Excel (.xlsx)<br><span style="font-size:0.7rem">Reads your Home Assessment Tracker format</span></p>
+    </div>
+    <input type="file" id="xlInput" accept=".xlsx,.xls" style="display:none" onchange="loadExcel(event)">
+    <div id="xlPreview" style="margin-top:14px;max-height:360px;overflow-y:auto"></div>
+    <div class="form-actions" id="xlActions" style="display:none">
+      <button class="btn btn-outline" onclick="closeModal('importExcelModal')">Cancel</button>
+      <button class="btn btn-success" onclick="importExcelRows()">✅ Import Selected Rows</button>
     </div>
   </div>
 </div>
 
 <script>
-const STEPS=['Visit Coordinated','Assessment Done','Photos Saved','PDF Created','Emailed to Coordinator','My Copy Saved'];
-const TIMES=['7:00 AM','8:00 AM','9:00 AM','10:00 AM','11:00 AM','12:00 PM','1:00 PM','2:00 PM','3:00 PM','4:00 PM','5:00 PM'];
-
-let appts=JSON.parse(localStorage.getItem('ha_v5')||'[]');
-let filter='';
-let searchQ='';
-let weekOffset=0;
-let activeModalId=null;
-let activeActionId=null;
-let openDropdown=null;
-
-function persist(){localStorage.setItem('ha_v5',JSON.stringify(appts));}
-
-// close dropdowns on outside click
-document.addEventListener('click',function(e){
-  if(openDropdown&&!openDropdown.contains(e.target)){
-    openDropdown.querySelector('.dropdown-menu').classList.remove('open');
-    openDropdown=null;
-  }
-});
-
-function exportData(){
-  const blob=new Blob([JSON.stringify(appts,null,2)],{type:'application/json'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');
-  a.href=url;
-  a.download=`HomeAssessments_Backup_${new Date().toISOString().split('T')[0]}.json`;
-  a.click();URL.revokeObjectURL(url);
+// ═══════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════
+let appointments = JSON.parse(localStorage.getItem('hea_appts2') || '[]');
+// migrate from old key
+if (!appointments.length) {
+  const old = localStorage.getItem('hea_appts');
+  if (old) try { appointments = JSON.parse(old); } catch{}
 }
-function importData(e){
-  const file=e.target.files[0];if(!file)return;
-  const reader=new FileReader();
-  reader.onload=function(ev){
-    try{
-      const data=JSON.parse(ev.target.result);
-      if(!Array.isArray(data)){alert('Invalid backup file.');return;}
-      if(!confirm(`Load ${data.length} appointments from backup?`))return;
-      appts=data;persist();renderList();updateStats();
-      alert('Backup restored!');
-    }catch(err){alert('Could not read file.');}
-  };
-  reader.readAsText(file);e.target.value='';
-}
+let currentApptId = null;
+let currentFilter = 'all';
+let currentSearch = '';
+let xlRows = [];
+let openDropdown = null;
 
-function showView(id,btn){
-  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
-  document.getElementById('view-'+id).classList.add('active');
-  if(btn)btn.classList.add('active');
-  if(id==='dashboard'){renderList();updateStats();}
-  if(id==='week')renderWeek();
+const TIMES = [
+  '6:00 AM','6:30 AM','7:00 AM','7:30 AM','8:00 AM','8:30 AM',
+  '9:00 AM','9:30 AM','10:00 AM','10:30 AM','11:00 AM','11:30 AM',
+  '12:00 PM','12:30 PM','1:00 PM','1:30 PM','2:00 PM','2:30 PM',
+  '3:00 PM','3:30 PM','4:00 PM','4:30 PM','5:00 PM','5:30 PM',
+  '6:00 PM','6:30 PM','7:00 PM','7:30 PM','8:00 PM'
+];
+
+const CHECKLIST = [
+  {section:'BEFORE ASSESSMENT'},
+  {id:'confirmed',label:'Appointment confirmed with client'},
+  {id:'tracker',label:'Client added to Appointment Tracker'},
+  {id:'folder',label:'Client folder created in OneDrive'},
+  {id:'photos_sub',label:'Photos subfolder created'},
+  {section:'DURING ASSESSMENT'},
+  {id:'photos',label:'Photos taken room by room'},
+  {id:'forms',label:'All forms completed on-site'},
+  {section:'AFTER ASSESSMENT'},
+  {id:'photos_saved',label:'Photos Saved'},
+  {id:'pdf',label:'PDF Created'},
+  {id:'submitted',label:'Submitted to Coordinator'},
+  {id:'coord_confirmed',label:'Coordinator Confirmed'},
+];
+const CHECK_IDS = CHECKLIST.filter(c=>c.id).map(c=>c.id);
+
+function fillTimeSelect(id){
+  const s=document.getElementById(id);
+  if(!s)return;
+  s.innerHTML='<option value="">-- Select --</option>'+TIMES.map(t=>`<option value="${t}">${t}</option>`).join('');
 }
 
-function setFilter(f,btn){
-  filter=f;
-  if(btn){
-    document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
-    btn.classList.add('active');
-  }
+// ═══════════════════════════════════════════
+// SAVE / STATS
+// ═══════════════════════════════════════════
+function save(){
+  localStorage.setItem('hea_appts2',JSON.stringify(appointments));
+  updateStats();
   renderList();
 }
 
-function onSearch(val){
-  searchQ=val.trim().toLowerCase();
-  document.getElementById('search-clear').style.display=val?'block':'none';
-  renderList();
-}
-function clearSearch(){
-  document.getElementById('search-input').value='';
-  document.getElementById('search-clear').style.display='none';
-  searchQ='';renderList();
+function updateStats(){
+  const count=s=>appointments.filter(a=>a.status===s).length;
+  document.getElementById('statActive').textContent=count('active');
+  document.getElementById('statReady').textContent=count('ready');
+  document.getElementById('statSubmitted').textContent=count('submitted');
+  document.getElementById('statTotal').textContent=appointments.length;
+  document.getElementById('statCancelled').textContent=count('cancelled');
 }
 
-function getStatus(a){
-  if(a.cancelled)return'Cancelled';
-  if(a.rescheduled)return'Rescheduled';
-  const done=STEPS.filter(s=>a.steps[s]).length;
-  if(done===STEPS.length)return'Complete';
-  if(done>=4)return'Submitted';
-  if(done>=3)return'Ready to Submit';
-  return'Active';
-}
-function badgeClass(s){
-  return{'Active':'badge-active','Ready to Submit':'badge-ready','Submitted':'badge-submitted',
-    'Complete':'badge-complete','Cancelled':'badge-cancelled','Rescheduled':'badge-rescheduled'}[s]||'badge-active';
-}
-function cardClass(s){
-  return{'Ready to Submit':'status-ready','Submitted':'status-submitted','Complete':'status-complete',
-    'Cancelled':'status-cancelled','Rescheduled':'status-rescheduled'}[s]||'';
-}
-function getMD(d){
-  if(!d)return{m:'',d:''};
-  const dt=new Date(d+'T12:00:00');
-  return{m:dt.toLocaleDateString('en-US',{month:'short'}).toUpperCase(),d:dt.getDate()};
-}
-function fileIcon(name){
-  const ext=(name.split('.').pop()||'').toLowerCase();
-  if(['jpg','jpeg','png','gif','webp','heic'].includes(ext))return'🖼';
-  if(ext==='pdf')return'📄';
-  if(['doc','docx'].includes(ext))return'📝';
-  return'📎';
-}
-function isImage(f){return f.type&&f.type.startsWith('image/');}
-function formatBytes(b){
-  if(b<1024)return b+' B';
-  if(b<1048576)return Math.round(b/1024)+' KB';
-  return(b/1048576).toFixed(1)+' MB';
-}
-
+// ═══════════════════════════════════════════
+// RENDER LIST
+// ═══════════════════════════════════════════
 function renderList(){
-  const el=document.getElementById('appt-list');
-  let list=appts.map(a=>({...a,_status:getStatus(a)}));
-  if(filter)list=list.filter(a=>a._status===filter);
-  if(searchQ){
-    list=list.filter(a=>{
-      const hay=`${a.last} ${a.first} ${a.address||''} ${a.phone||''} ${a.email||''} ${a._status}`.toLowerCase();
-      return hay.includes(searchQ);
-    });
-  }
-  list.sort((a,b)=>a.date>b.date?1:-1);
-
-  const countEl=document.getElementById('search-count');
-  if(searchQ){
-    countEl.style.display='block';
-    countEl.textContent=`${list.length} result${list.length!==1?'s':''} for "${searchQ}"`;
-  }else{countEl.style.display='none';}
-
-  const titleEl=document.getElementById('list-title');
-  titleEl.textContent=filter?filter+' Appointments':'All Appointments';
+  const el=document.getElementById('apptList');
+  if(!el)return;
+  let list=[...appointments];
+  if(currentFilter!=='all')list=list.filter(a=>a.status===currentFilter);
+  if(currentSearch)list=list.filter(a=>
+    `${a.lastName} ${a.firstName} ${a.address||''} ${a.phone||''} ${a.status}`.toLowerCase()
+      .includes(currentSearch.toLowerCase())
+  );
+  list.sort((a,b)=>(a.date||'')>(b.date||'')?1:-1);
 
   if(!list.length){
-    el.innerHTML=`<div class="empty"><div class="empty-icon">${searchQ?'🔍':'📋'}</div><h3>${searchQ?'No results found':filter?'No '+filter+' appointments':'No appointments yet'}</h3><p>${searchQ?'Try a different name or address':'Add your first appointment above'}</p></div>`;
+    el.innerHTML=`<div class="empty"><div class="empty-icon">📋</div>
+      <div class="empty-title">No appointments found</div>
+      <div>Try a different filter or create a new appointment</div></div>`;
     return;
   }
 
   el.innerHTML=list.map(a=>{
-    const md=getMD(a.date);
-    const status=a._status;
-    const done=STEPS.filter(s=>a.steps[s]).length;
-    const pct=Math.round((done/STEPS.length)*100);
-    const files=a.files||[];
-    const isCancelled=status==='Cancelled';
-    const isRescheduled=status==='Rescheduled';
-    const badgeCls=isCancelled?'cancelled-badge':isRescheduled?'rescheduled-badge':'';
-
-    const dropItems=isCancelled?
-      `<div class="dropdown-item" onclick="restoreAppt(${a.id});closeDropdown()">&#9654; Restore</div>
-       <div class="dropdown-divider"></div>
-       <div class="dropdown-item danger" onclick="deleteAppt(${a.id});closeDropdown()">&#215; Delete</div>`:
-      `<div class="dropdown-item" onclick="openTicket(${a.id});closeDropdown()">&#128065; View Ticket</div>
-       <div class="dropdown-item" onclick="openFileModal(${a.id});closeDropdown()">&#128206; Add Files</div>
-       <div class="dropdown-item purple" onclick="openRescheduleModal(${a.id});closeDropdown()">&#128197; Reschedule</div>
-       <div class="dropdown-item danger" onclick="openCancelModal(${a.id});closeDropdown()">&#10060; Cancel Job</div>
-       <div class="dropdown-divider"></div>
-       <div class="dropdown-item" onclick="generatePDF(${a.id});closeDropdown()">&#128196; Download PDF</div>
-       <div class="dropdown-item danger" onclick="deleteAppt(${a.id});closeDropdown()">&#215; Delete</div>`;
-
-    return`<div class="appt-card ${cardClass(status)}" onclick="openTicket(${a.id})">
-      <div class="card-row">
-        <div class="date-badge ${badgeCls}" onclick="event.stopPropagation()"><div class="mo">${md.m}</div><div class="dy">${md.d}</div></div>
-        <div class="card-body">
-          <div class="card-top">
-            <span class="card-name">${a.last}, ${a.first}</span>
-            <span class="badge ${badgeClass(status)}">${status}</span>
-          </div>
-          <div class="card-meta">
-            <span>${a.time}</span>
-            ${a.address?`<span>${a.address}</span>`:''}
-            ${a.phone?`<span>${a.phone}</span>`:''}
-          </div>
-          <div class="card-progress">
-            <div class="mini-bar"><div class="mini-fill" style="width:${pct}%"></div></div>
-            <span class="mini-text">${done}/${STEPS.length} steps</span>
-            ${files.length>0?`<span class="card-files-count">&#128206; ${files.length} file${files.length>1?'s':''}</span>`:''}
+    const [mon,day]=fmtDateParts(a.date);
+    const done=CHECK_IDS.filter(id=>a.checklist?.[id]).length;
+    const total=CHECK_IDS.length;
+    const pct=Math.round((done/total)*100);
+    const files=(a.files||[]).length;
+    return `
+    <div class="appt-row s-${a.status}" onclick="openDetail('${a.id}')">
+      <div class="date-badge">
+        <div class="db-mon">${mon}</div>
+        <div class="db-day">${day}</div>
+      </div>
+      <div class="appt-info">
+        <div class="appt-name">
+          ${a.lastName}, ${a.firstName}
+          <span class="badge badge-${a.status}">${a.status}</span>
+        </div>
+        <div class="appt-meta">
+          ${a.time?`<span class="appt-meta-item">🕐 ${a.time}</span>`:''}
+          ${a.address?`<span class="appt-meta-item">📍 ${a.address}</span>`:''}
+          ${a.phone?`<span class="appt-meta-item">📞 ${a.phone}</span>`:''}
+        </div>
+        <div class="appt-progress">
+          <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+          <span class="progress-text">${done}/${total} steps</span>
+          ${files?`<span class="file-tag">📎 ${files} file${files>1?'s':''}</span>`:''}
+        </div>
+      </div>
+      <div class="appt-actions" onclick="event.stopPropagation()">
+        <div class="actions-menu" id="menu_${a.id}">
+          <button class="btn btn-outline btn-sm" onclick="toggleMenu('${a.id}')">Actions ▾</button>
+          <div class="actions-dropdown" id="drop_${a.id}">
+            <div class="action-item" onclick="openDetail('${a.id}');closeMenus()">👁 View Details</div>
+            <div class="action-item" onclick="quickReschedule('${a.id}')">📅 Reschedule</div>
+            <div class="action-item" onclick="markReadyById('${a.id}')">✅ Mark Ready</div>
+            <div class="action-item" onclick="printTicketById('${a.id}')">🖨️ Print Ticket</div>
+            <div class="action-divider"></div>
+            <div class="action-item danger" onclick="quickCancel('${a.id}')">❌ Cancel</div>
           </div>
         </div>
-        <div class="card-actions" onclick="event.stopPropagation()">
-          <div class="card-actions" id="dd-${a.id}">
-            <button class="dropdown-btn" onclick="toggleDropdown(${a.id})">Actions &#9660;</button>
-            <div class="dropdown-menu" id="menu-${a.id}">${dropItems}</div>
-          </div>
-        </div>
-        <span class="card-arrow">&#8250;</span>
+        <button class="btn btn-outline btn-icon" onclick="openDetail('${a.id}')">›</button>
       </div>
     </div>`;
   }).join('');
 }
 
-function toggleDropdown(id){
-  const menu=document.getElementById('menu-'+id);
-  const wrap=document.getElementById('dd-'+id);
-  if(openDropdown&&openDropdown!==wrap){
-    openDropdown.querySelector('.dropdown-menu').classList.remove('open');
-  }
-  menu.classList.toggle('open');
-  openDropdown=menu.classList.contains('open')?wrap:null;
+function fmtDateParts(d){
+  if(!d)return['—','—'];
+  const months=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+  const [y,m,day]=d.split('-');
+  return[months[parseInt(m)-1],parseInt(day)];
 }
-function closeDropdown(){
+function fmtDate(d){
+  if(!d)return'—';
+  const[y,m,day]=d.split('-');return`${m}/${day}/${y}`;
+}
+
+function toggleMenu(id){
+  closeMenus();
+  const drop=document.getElementById('drop_'+id);
+  if(drop){drop.classList.add('open');openDropdown=id;}
+}
+function closeMenus(){
   if(openDropdown){
-    openDropdown.querySelector('.dropdown-menu').classList.remove('open');
+    document.getElementById('drop_'+openDropdown)?.classList.remove('open');
     openDropdown=null;
   }
 }
+document.addEventListener('click',()=>closeMenus());
 
-function toggleStep(id,step){
-  const a=appts.find(x=>x.id===id);
-  if(!a||a.cancelled)return;
-  a.steps[step]=!a.steps[step];
-  persist();
-  if(document.getElementById('ticket-modal').classList.contains('open'))openTicket(id);
-  renderList();updateStats();
-}
-
-function deleteAppt(id){
-  if(!confirm('Delete this appointment permanently?'))return;
-  appts=appts.filter(a=>a.id!==id);
-  persist();renderList();updateStats();
-}
-function restoreAppt(id){
-  const a=appts.find(x=>x.id===id);
-  if(!a)return;
-  a.cancelled=false;a.cancelReason='';
-  persist();renderList();updateStats();
-}
-
-function updateStats(){
-  const statuses=appts.map(getStatus);
-  document.getElementById('s-active').textContent=statuses.filter(s=>s==='Active'||s==='Rescheduled').length;
-  document.getElementById('s-ready').textContent=statuses.filter(s=>s==='Ready to Submit').length;
-  document.getElementById('s-submitted').textContent=statuses.filter(s=>s==='Submitted'||s==='Complete').length;
-  document.getElementById('s-total').textContent=appts.length;
-  document.getElementById('s-cancelled').textContent=statuses.filter(s=>s==='Cancelled').length;
-}
-
-function saveAppt(){
-  const last=document.getElementById('f-last').value.trim();
-  const first=document.getElementById('f-first').value.trim();
-  const date=document.getElementById('f-date').value;
-  if(!last||!first||!date){alert('Please fill in Last Name, First Name, and Date.');return;}
-  appts.push({id:Date.now(),last,first,
-    address:document.getElementById('f-addr').value.trim(),
-    phone:document.getElementById('f-phone').value.trim(),
-    email:document.getElementById('f-email').value.trim(),
-    date,time:document.getElementById('f-time').value,
-    notes:document.getElementById('f-notes').value.trim(),
-    steps:{},files:[],cancelled:false,rescheduled:false,rescheduleHistory:[]
-  });
-  persist();
-  ['f-last','f-first','f-addr','f-phone','f-email','f-notes'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('f-date').value='';
-  const t=document.getElementById('toast');t.style.display='block';
-  setTimeout(()=>t.style.display='none',3000);
-}
-
-/* ═══ TICKET MODAL ═══ */
-function openTicket(id){
-  activeModalId=id;
-  const a=appts.find(x=>x.id===id);
-  if(!a)return;
-  const status=getStatus(a);
-  const files=a.files||[];
-  const photos=files.filter(f=>isImage(f)&&f.dataUrl);
-  const docs=files.filter(f=>!isImage(f));
-  const done=STEPS.filter(s=>a.steps[s]).length;
-
-  document.getElementById('ticket-modal-title').textContent=`${a.last}, ${a.first}`;
-
-  const reschedHtml=a.rescheduleHistory&&a.rescheduleHistory.length>0?
-    `<div class="reason-note">&#128197; Rescheduled from ${a.rescheduleHistory[a.rescheduleHistory.length-1].oldDate} at ${a.rescheduleHistory[a.rescheduleHistory.length-1].oldTime}${a.rescheduleHistory[a.rescheduleHistory.length-1].reason?' — '+a.rescheduleHistory[a.rescheduleHistory.length-1].reason:''}</div>`:'';
-  const cancelHtml=a.cancelReason?`<div class="reason-note" style="background:#FEE2E2;color:#B91C1C;">&#10060; Cancelled: ${a.cancelReason}</div>`:'';
-
-  const stepsHtml=STEPS.map(s=>`
-    <div class="ticket-step">
-      <div class="step-circle ${a.steps[s]?'done':''}" onclick="toggleStep(${a.id},'${s}')" style="cursor:pointer;" title="Click to toggle">
-        ${a.steps[s]?'&#10003;':''}
-      </div>
-      <span class="step-label ${a.steps[s]?'done':''}">${s}</span>
-    </div>`).join('');
-
-  const photosHtml=photos.length>0?`
-    <div class="ticket-section">
-      <div class="ticket-section-title">Photos (${photos.length})</div>
-      <div class="files-grid">
-        ${photos.map((f,i)=>`<div class="file-thumb" onclick="viewFileById(${id},${files.indexOf(f)})">
-          <img src="${f.dataUrl}" alt="${f.name}"/>
-          <div class="file-thumb-label">${f.name}</div>
-        </div>`).join('')}
-      </div>
-    </div>`:'';
-
-  const docsHtml=docs.length>0?`
-    <div class="ticket-section">
-      <div class="ticket-section-title">Documents (${docs.length})</div>
-      ${docs.map((f,i)=>`<div class="doc-item" onclick="viewFileById(${id},${files.indexOf(f)})">
-        <span class="doc-icon">${fileIcon(f.name)}</span>
-        <div class="doc-info"><div class="doc-name">${f.name}</div><div class="doc-size">${formatBytes(f.size)}</div></div>
-        <button class="doc-del" onclick="event.stopPropagation();removeFileByApptIdx(${id},${files.indexOf(f)})" title="Remove">&#215;</button>
-      </div>`).join('')}
-    </div>`:'';
-
-  document.getElementById('ticket-body').innerHTML=`
-    <div class="ticket-hero">
-      <div class="ticket-name">${a.last}, ${a.first}</div>
-      <div class="ticket-sub">${a.date} &nbsp;|&nbsp; ${a.time} &nbsp;|&nbsp; <span style="background:rgba(255,255,255,0.2);padding:1px 8px;border-radius:10px;">${status}</span></div>
-    </div>
-    ${reschedHtml}${cancelHtml}
-    <div class="ticket-grid">
-      ${a.address?`<div class="ticket-field"><div class="ticket-field-label">Address</div><div class="ticket-field-val">${a.address}</div></div>`:''}
-      ${a.phone?`<div class="ticket-field"><div class="ticket-field-label">Phone</div><div class="ticket-field-val">${a.phone}</div></div>`:''}
-      ${a.email?`<div class="ticket-field"><div class="ticket-field-label">Email</div><div class="ticket-field-val">${a.email}</div></div>`:''}
-      <div class="ticket-field"><div class="ticket-field-label">Progress</div><div class="ticket-field-val">${done} of ${STEPS.length} steps done</div></div>
-    </div>
-    ${a.notes?`<div class="ticket-section"><div class="ticket-section-title">Notes</div><div style="font-size:13px;color:var(--gray-700);">${a.notes}</div></div>`:''}
-    <div class="ticket-section">
-      <div class="ticket-section-title">Job Checklist — click to check off</div>
-      ${stepsHtml}
-    </div>
-    ${photosHtml}${docsHtml}
-    ${files.length===0?`<div class="ticket-section"><div class="ticket-section-title">Files</div><div style="font-size:13px;color:var(--gray-400);">No files uploaded yet</div></div>`:''}`;
-
-  const isCancelled=status==='Cancelled';
-  document.getElementById('ticket-footer').innerHTML=isCancelled?
-    `<button class="modal-btn btn-green" onclick="restoreAppt(${id});closeTicket()">Restore</button>
-     <button class="modal-btn btn-cancel-style" onclick="deleteAppt(${id});closeTicket()">Delete</button>`:
-    `<button class="modal-btn btn-secondary" onclick="openFileModal(${id})">+ Add Files</button>
-     <button class="modal-btn btn-purple" onclick="closeTicket();openRescheduleModal(${id})">Reschedule</button>
-     <button class="modal-btn btn-cancel-style" onclick="closeTicket();openCancelModal(${id})">Cancel Job</button>
-     <button class="modal-btn btn-primary" onclick="generatePDF(${id})">&#128196; Download PDF</button>`;
-
-  document.getElementById('ticket-modal').classList.add('open');
-}
-function closeTicket(){
-  document.getElementById('ticket-modal').classList.remove('open');
-  activeModalId=null;
+// ═══════════════════════════════════════════
+// FILTERS / SEARCH
+// ═══════════════════════════════════════════
+function setFilter(f,el){
+  currentFilter=f;
+  document.querySelectorAll('.pill').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
   renderList();
 }
-function viewFileById(apptId,fileIdx){
-  const a=appts.find(x=>x.id===apptId);
-  if(!a||!a.files[fileIdx]||!a.files[fileIdx].dataUrl)return;
-  const f=a.files[fileIdx];
-  const w=window.open();
-  if(isImage(f)){w.document.write(`<img src="${f.dataUrl}" style="max-width:100%;height:auto;"/>`);}
-  else{w.location=f.dataUrl;}
+function filterAppts(q){currentSearch=q;renderList();}
+
+// ═══════════════════════════════════════════
+// VIEWS
+// ═══════════════════════════════════════════
+function setView(v,el){
+  document.querySelectorAll('.subnav-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  const ma=document.getElementById('mainArea');
+  const sr=document.getElementById('statsRow');
+  const tb=document.getElementById('toolbar');
+  const lt=document.getElementById('listTitle');
+  const al=document.getElementById('apptList');
+
+  // reset
+  ma.style.padding='20px 24px 40px';
+  ma.style.maxWidth='1200px';
+  sr.style.display='grid';
+  if(tb)tb.style.display='flex';
+  if(lt)lt.style.display='flex';
+  if(al)al.style.display='flex';
+
+  if(v==='dashboard'){
+    if(al)al.style.display='flex';
+    renderList();
+  } else if(v==='week'){
+    if(tb)tb.style.display='none';
+    if(lt)lt.style.display='none';
+    if(al)al.innerHTML='';
+    if(al)al.style.display='none';
+    renderWeekView();
+  } else if(v==='map'){
+    sr.style.display='none';
+    ma.style.padding='0';
+    ma.style.maxWidth='none';
+    if(tb)tb.style.display='none';
+    if(lt)lt.style.display='none';
+    if(al)al.innerHTML='';
+    if(al)al.style.display='none';
+    renderMapView();
+  } else if(v==='checklist'){
+    if(tb)tb.style.display='none';
+    if(lt)lt.style.display='none';
+    if(al)al.innerHTML='';
+    renderChecklistView();
+  }
 }
-function removeFileByApptIdx(apptId,fileIdx){
-  const a=appts.find(x=>x.id===apptId);
+
+// ═══════════════════════════════════════════
+// MODALS
+// ═══════════════════════════════════════════
+function openModal(id){
+  fillTimeSelect('nTime');fillTimeSelect('rsTime');
+  document.getElementById(id).classList.add('open');
+}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+function overlayClose(e,id){if(e.target===e.currentTarget)closeModal(id);}
+
+// ═══════════════════════════════════════════
+// NEW APPOINTMENT
+// ═══════════════════════════════════════════
+function saveNewAppt(){
+  const last=document.getElementById('nLast').value.trim();
+  const first=document.getElementById('nFirst').value.trim();
+  const date=document.getElementById('nDate').value;
+  if(!last||!first||!date){showToast('Please fill in Last Name, First Name, and Date');return;}
+  appointments.push({
+    id:Date.now().toString(),
+    lastName:last,firstName:first,
+    address:document.getElementById('nAddr').value.trim(),
+    phone:document.getElementById('nPhone').value.trim(),
+    email:document.getElementById('nEmail').value.trim(),
+    date,time:document.getElementById('nTime').value,
+    notes:document.getElementById('nNotes').value.trim(),
+    status:'active',checklist:{},files:[],
+    createdAt:new Date().toISOString()
+  });
+  save();
+  closeModal('newApptModal');
+  ['nLast','nFirst','nAddr','nPhone','nEmail','nDate','nNotes'].forEach(i=>document.getElementById(i).value='');
+  showToast('✅ Appointment saved!');
+}
+
+// ═══════════════════════════════════════════
+// DETAIL
+// ═══════════════════════════════════════════
+function openDetail(id){
+  currentApptId=id;
+  const a=appointments.find(x=>x.id===id);
   if(!a)return;
-  if(!confirm('Remove this file?'))return;
-  a.files.splice(fileIdx,1);
-  persist();openTicket(apptId);
+  document.getElementById('dModalTitle').textContent=`${a.lastName}, ${a.firstName}`;
+  document.getElementById('dName').textContent=`${a.lastName}, ${a.firstName}`;
+  document.getElementById('dSub').innerHTML=`
+    <span>📅 ${fmtDate(a.date)}${a.time?' @ '+a.time:''}</span>
+    ${a.address?`<span>📍 ${a.address}</span>`:''}`;
+  document.getElementById('dInfoGrid').innerHTML=`
+    <div class="info-card"><div class="info-lbl">Status</div>
+      <div class="info-val"><span class="badge badge-${a.status}">${a.status}</span></div></div>
+    <div class="info-card"><div class="info-lbl">Phone</div><div class="info-val">${a.phone||'—'}</div></div>
+    <div class="info-card"><div class="info-lbl">Email</div><div class="info-val" style="font-size:0.78rem">${a.email||'—'}</div></div>
+    <div class="info-card"><div class="info-lbl">Date</div><div class="info-val">${fmtDate(a.date)}</div></div>`;
+  document.getElementById('dNotes').textContent=a.notes||'No notes';
+  renderDetailChecklist(a);
+  renderFileGrid(a);
+  openModal('detailModal');
 }
 
-/* ═══ RESCHEDULE ═══ */
-function openRescheduleModal(id){
-  activeActionId=id;
-  document.getElementById('r-date').value='';
-  document.getElementById('r-reason').value='';
-  document.getElementById('reschedule-modal').classList.add('open');
-}
-function closeRescheduleModal(){document.getElementById('reschedule-modal').classList.remove('open');activeActionId=null;}
-function confirmReschedule(){
-  const a=appts.find(x=>x.id===activeActionId);if(!a)return;
-  const newDate=document.getElementById('r-date').value;
-  const newTime=document.getElementById('r-time').value;
-  const reason=document.getElementById('r-reason').value.trim();
-  if(!newDate){alert('Please select a new date.');return;}
-  if(!a.rescheduleHistory)a.rescheduleHistory=[];
-  a.rescheduleHistory.push({oldDate:a.date,oldTime:a.time,reason,reschedAt:new Date().toLocaleDateString()});
-  a.date=newDate;a.time=newTime;a.rescheduled=true;a.cancelled=false;
-  persist();closeRescheduleModal();renderList();updateStats();
+function renderDetailChecklist(a){
+  document.getElementById('dChecklist').innerHTML=CHECKLIST.map(item=>{
+    if(item.section)return`<div class="check-section-hdr">${item.section}</div>`;
+    const checked=a.checklist?.[item.id]||false;
+    return`<div class="check-row${checked?' done':''}" onclick="toggleCheck('${a.id}','${item.id}',this)">
+      <div class="check-box${checked?' checked':''}">${checked?'✓':''}</div>
+      <span class="check-label">${item.label}</span>
+    </div>`;
+  }).join('');
 }
 
-/* ═══ CANCEL ═══ */
-function openCancelModal(id){
-  activeActionId=id;
-  document.getElementById('c-reason').value='';
-  document.getElementById('cancel-modal').classList.add('open');
-}
-function closeCancelModal(){document.getElementById('cancel-modal').classList.remove('open');activeActionId=null;}
-function confirmCancel(){
-  const a=appts.find(x=>x.id===activeActionId);if(!a)return;
-  const reason=document.getElementById('c-reason').value.trim();
-  if(!reason){alert('Please enter a reason.');return;}
-  a.cancelled=true;a.cancelReason=reason;
-  persist();closeCancelModal();renderList();updateStats();
+function toggleCheck(apptId,checkId,el){
+  const a=appointments.find(x=>x.id===apptId);
+  if(!a)return;
+  if(!a.checklist)a.checklist={};
+  a.checklist[checkId]=!a.checklist[checkId];
+  const checked=a.checklist[checkId];
+  el.classList.toggle('done',checked);
+  el.querySelector('.check-box').className='check-box'+(checked?' checked':'');
+  el.querySelector('.check-box').textContent=checked?'✓':'';
+  save();
 }
 
-/* ═══ FILE UPLOAD ═══ */
-function openFileModal(id){
-  activeModalId=id;
-  const a=appts.find(x=>x.id===id);
-  document.getElementById('file-modal-title').textContent=`Upload Files — ${a.last}, ${a.first}`;
-  renderModalFiles();
-  document.getElementById('file-modal').classList.add('open');
-}
-function closeFileModal(){
-  document.getElementById('file-modal').classList.remove('open');
-  if(document.getElementById('ticket-modal').classList.contains('open')&&activeModalId)openTicket(activeModalId);
-  else{activeModalId=null;renderList();}
-}
-function renderModalFiles(){
-  const a=appts.find(x=>x.id===activeModalId);if(!a)return;
-  const files=a.files||[];
-  const el=document.getElementById('modal-files');
-  if(!files.length){el.innerHTML='<div style="text-align:center;font-size:13px;color:var(--gray-400);padding:12px;">No files yet</div>';return;}
-  el.innerHTML=files.map((f,i)=>`<div class="doc-item">
-    <span class="doc-icon">${fileIcon(f.name)}</span>
-    <div class="doc-info"><div class="doc-name">${f.name}</div><div class="doc-size">${formatBytes(f.size)}</div></div>
-    ${f.dataUrl&&isImage(f)?`<img src="${f.dataUrl}" style="width:40px;height:40px;object-fit:cover;border-radius:4px;cursor:pointer;" onclick="viewFileMod(${i})"/>`:''}
-    <button class="doc-del" onclick="removeFileMod(${i})">&#215;</button>
-  </div>`).join('');
-}
-function handleFileInput(e){processFiles(Array.from(e.target.files));e.target.value='';}
-function handleDrop(e){e.preventDefault();processFiles(Array.from(e.dataTransfer.files));}
-function processFiles(files){
-  const a=appts.find(x=>x.id===activeModalId);if(!a)return;
-  if(!a.files)a.files=[];
-  let pending=files.length;
-  files.forEach(file=>{
-    const reader=new FileReader();
-    reader.onload=function(ev){
-      a.files.push({name:file.name,size:file.size,type:file.type,dataUrl:ev.target.result});
-      pending--;if(pending===0){persist();renderModalFiles();}
-    };
-    reader.readAsDataURL(file);
-  });
-}
-function removeFileMod(idx){
-  const a=appts.find(x=>x.id===activeModalId);if(!a)return;
-  a.files.splice(idx,1);persist();renderModalFiles();
-}
-function viewFileMod(idx){
-  const a=appts.find(x=>x.id===activeModalId);if(!a)return;
-  viewFileById(activeModalId,idx);
-}
-
-/* close modals on overlay click */
-['ticket-modal','reschedule-modal','cancel-modal','file-modal'].forEach(id=>{
-  document.getElementById(id).addEventListener('click',function(e){
-    if(e.target===this){
-      if(id==='ticket-modal')closeTicket();
-      else if(id==='reschedule-modal')closeRescheduleModal();
-      else if(id==='cancel-modal')closeCancelModal();
-      else if(id==='file-modal')closeFileModal();
-    }
-  });
-});
-
-/* ═══ PDF GENERATION ═══ */
-function generatePDF(id){
-  const a=appts.find(x=>x.id===id);if(!a)return;
-  const status=getStatus(a);
-  const files=a.files||[];
-  const photos=files.filter(f=>isImage(f)&&f.dataUrl);
-  const pdfs=files.filter(f=>f.type==='application/pdf'&&f.dataUrl);
-  const otherDocs=files.filter(f=>!isImage(f)&&f.type!=='application/pdf');
-  const done=STEPS.filter(s=>a.steps[s]).length;
-
-  const reschedHtml=a.rescheduleHistory&&a.rescheduleHistory.length>0?
-    `<div style="background:#EDE9FE;border-left:4px solid #7C3AED;padding:10px 14px;border-radius:6px;margin-bottom:12px;font-size:13px;color:#4C1D95;">
-      <strong>Rescheduled:</strong> Originally ${a.rescheduleHistory[a.rescheduleHistory.length-1].oldDate} at ${a.rescheduleHistory[a.rescheduleHistory.length-1].oldTime}
-      ${a.rescheduleHistory[a.rescheduleHistory.length-1].reason?' &mdash; '+a.rescheduleHistory[a.rescheduleHistory.length-1].reason:''}
-    </div>`:'';
-  const cancelHtml=a.cancelReason?
-    `<div style="background:#FEE2E2;border-left:4px solid #B91C1C;padding:10px 14px;border-radius:6px;margin-bottom:12px;font-size:13px;color:#7F1D1D;">
-      <strong>Cancelled:</strong> ${a.cancelReason}
-    </div>`:'';
-
-  const stepsHtml=STEPS.map(s=>`
-    <div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #F5F5F4;">
-      <div style="width:22px;height:22px;border-radius:50%;border:2px solid ${a.steps[s]?'#15803D':'#D6D3D1'};background:${a.steps[s]?'#15803D':'transparent'};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-        ${a.steps[s]?'<span style="color:#fff;font-size:12px;font-weight:700;">&#10003;</span>':''}
-      </div>
-      <span style="font-size:13px;color:${a.steps[s]?'#15803D':'#78716C'};font-weight:${a.steps[s]?'600':'400'};">${s}</span>
+// ═══════════════════════════════════════════
+// FILES
+// ═══════════════════════════════════════════
+function renderFileGrid(a){
+  const g=document.getElementById('dFileGrid');
+  if(!a.files||!a.files.length){g.innerHTML='';return;}
+  g.innerHTML=a.files.map((f,i)=>`
+    <div class="file-thumb-card">
+      ${f.type&&f.type.startsWith('image/')?
+        `<img src="${f.data}" alt="${f.name}" onclick="previewImg('${f.data}')">`
+        :`<div class="file-doc">📄</div>`}
+      <div class="file-name-small">${f.name}</div>
+      <button class="file-remove" onclick="removeFile('${a.id}',${i})">✕</button>
     </div>`).join('');
-
-  /* PHOTOS — one full page per photo */
-  const photosHtml=photos.length>0?
-    photos.map((f,i)=>`
-    <div style="break-before:page;page-break-before:always;padding-top:8px;">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;border-bottom:2px solid #FEF3C7;padding-bottom:8px;">
-        <h2 style="font-size:13px;font-weight:700;color:#451A03;text-transform:uppercase;letter-spacing:0.06em;">Photo ${i+1} of ${photos.length}</h2>
-        <span style="font-size:11px;color:#A8A29E;">${f.name}</span>
-      </div>
-      <div style="border:1px solid #E7E5E4;border-radius:10px;overflow:hidden;">
-        <img src="${f.dataUrl}" style="width:100%;height:auto;max-height:700px;object-fit:contain;display:block;background:#FAFAF9;" alt="${f.name}"/>
-      </div>
-      <div style="margin-top:8px;padding:8px 12px;background:#FAFAF9;border:1px solid #E7E5E4;border-radius:8px;font-size:11px;color:#78716C;">
-        <strong>Photo ${i+1}</strong> &nbsp;&bull;&nbsp; ${f.name} &nbsp;&bull;&nbsp; ${a.last}, ${a.first} &nbsp;&bull;&nbsp; ${a.date}
-      </div>
-    </div>`).join('')
-  :'';
-
-  /* PDFs — embedded full page via iframe so content is visible */
-  const pdfsHtml=pdfs.length>0?pdfs.map((f,i)=>`
-    <div style="margin-top:32px;break-before:page;">
-      <h2 style="font-size:14px;font-weight:700;color:#451A03;text-transform:uppercase;letter-spacing:0.06em;border-bottom:2px solid #FEF3C7;padding-bottom:8px;margin-bottom:14px;">
-        Document ${i+1} of ${pdfs.length}: ${f.name}
-      </h2>
-      <div style="border:1px solid #E7E5E4;border-radius:10px;overflow:hidden;">
-        <iframe src="${f.dataUrl}" style="width:100%;height:900px;border:none;display:block;" title="${f.name}"></iframe>
-      </div>
-      <div style="padding:8px 0;font-size:11px;color:#A8A29E;">
-        ${f.name} &nbsp;|&nbsp; ${formatBytes(f.size)}
-        &nbsp;|&nbsp; <a href="${f.dataUrl}" download="${f.name}" style="color:#D97706;font-weight:600;">Download original</a>
-      </div>
-    </div>`).join(''):'';
-
-  /* OTHER DOCS (xlsx, docx, etc) — listed with download link */
-  const otherDocsHtml=otherDocs.length>0?`
-    <div style="margin-top:32px;">
-      <h2 style="font-size:14px;font-weight:700;color:#451A03;text-transform:uppercase;letter-spacing:0.06em;border-bottom:2px solid #FEF3C7;padding-bottom:8px;margin-bottom:12px;">
-        Other Attachments (${otherDocs.length})
-      </h2>
-      ${otherDocs.map(f=>`
-        <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:#FAFAF9;border:1px solid #E7E5E4;border-radius:8px;margin-bottom:8px;">
-          <span style="font-size:26px;">${fileIcon(f.name)}</span>
-          <div style="flex:1;">
-            <div style="font-size:13px;font-weight:600;color:#1C1917;">${f.name}</div>
-            <div style="font-size:11px;color:#A8A29E;">${formatBytes(f.size)} &nbsp;|&nbsp; ${f.type||'file'}</div>
-          </div>
-          ${f.dataUrl?`<a href="${f.dataUrl}" download="${f.name}" style="font-size:12px;color:#D97706;font-weight:700;text-decoration:none;background:#FEF3C7;padding:6px 14px;border-radius:6px;border:1px solid #FDE68A;">Download</a>`:''}
-        </div>`).join('')}
-    </div>`:'';
-
-  const win=window.open('','_blank');
-  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
-    <title>Assessment — ${a.last}, ${a.first} — ${a.date}</title>
-    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-      *{box-sizing:border-box;margin:0;padding:0;}
-      body{font-family:'Sora',sans-serif;color:#1C1917;background:#fff;padding:32px;max-width:840px;margin:0 auto;}
-      @media print{
-        .no-print{display:none!important;}
-        body{padding:16px;}
-        @page{margin:1.5cm;}
-        iframe{height:1000px!important;}
-      }
-    </style>
-  </head><body>
-    <div class="no-print" style="margin-bottom:24px;display:flex;gap:10px;align-items:center;padding:14px 18px;background:#FFFBEB;border-radius:10px;border:1px solid #FEF3C7;">
-      <div style="flex:1;">
-        <div style="font-size:13px;color:#92400E;font-weight:600;margin-bottom:2px;">&#128196; Your assessment report is ready</div>
-        <div style="font-size:12px;color:#A8A29E;">All photos and PDF documents are embedded below. Click Print/Save as PDF to download.</div>
-      </div>
-      <button onclick="window.print()" style="background:linear-gradient(135deg,#D97706,#EA580C);color:#fff;border:none;padding:10px 22px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:'Sora',sans-serif;white-space:nowrap;">&#128438; Print / Save as PDF</button>
-      <button onclick="window.close()" style="background:#F5F5F4;color:#44403C;border:1px solid #E7E5E4;padding:10px 14px;border-radius:8px;font-size:13px;cursor:pointer;font-family:'Sora',sans-serif;">Close</button>
-    </div>
-
-    <div style="background:linear-gradient(135deg,#451A03,#7C2D12);color:#fff;border-radius:14px;padding:28px;margin-bottom:24px;">
-      <div style="font-size:10px;opacity:0.6;text-transform:uppercase;letter-spacing:0.12em;margin-bottom:6px;">Home Assessment Report</div>
-      <div style="font-size:28px;font-weight:700;margin-bottom:6px;">${a.last}, ${a.first}</div>
-      <div style="font-size:14px;opacity:0.8;margin-bottom:10px;">${a.date} &nbsp;&bull;&nbsp; ${a.time} &nbsp;&bull;&nbsp; 2-Hour Assessment Block</div>
-      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-        <span style="background:rgba(255,255,255,0.2);padding:3px 14px;border-radius:20px;font-size:12px;font-weight:600;">${status}</span>
-        <span style="font-size:12px;opacity:0.6;">By Aaron Osorio</span>
-        <span style="font-size:12px;opacity:0.6;">&bull; ${photos.length} photo${photos.length!==1?'s':''} &bull; ${pdfs.length+otherDocs.length} doc${pdfs.length+otherDocs.length!==1?'s':''}</span>
-      </div>
-    </div>
-
-    ${reschedHtml}${cancelHtml}
-
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:24px;">
-      <div style="background:#FAFAF9;border:1px solid #E7E5E4;border-radius:10px;padding:16px;">
-        <div style="font-size:10px;color:#A8A29E;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:12px;font-weight:700;">Client Details</div>
-        ${a.address?`<div style="font-size:13px;margin-bottom:8px;display:flex;gap:8px;align-items:flex-start;"><span style="flex-shrink:0;">&#128205;</span><span>${a.address}</span></div>`:''}
-        ${a.phone?`<div style="font-size:13px;margin-bottom:8px;display:flex;gap:8px;"><span>&#128222;</span><span>${a.phone}</span></div>`:''}
-        ${a.email?`<div style="font-size:13px;display:flex;gap:8px;"><span>&#9993;</span><span>${a.email}</span></div>`:''}
-      </div>
-      <div style="background:#FAFAF9;border:1px solid #E7E5E4;border-radius:10px;padding:16px;">
-        <div style="font-size:10px;color:#A8A29E;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:12px;font-weight:700;">Job Summary</div>
-        <div style="font-size:13px;margin-bottom:8px;">Checklist: <strong>${done} of ${STEPS.length} steps complete</strong></div>
-        <div style="font-size:13px;margin-bottom:8px;">Photos uploaded: <strong>${photos.length}</strong></div>
-        <div style="font-size:13px;margin-bottom:8px;">Documents uploaded: <strong>${pdfs.length+otherDocs.length}</strong></div>
-        <div style="font-size:13px;">Status: <strong>${status}</strong></div>
-      </div>
-    </div>
-
-    ${a.notes?`<div style="background:#FFFBEB;border:1px solid #FEF3C7;border-radius:10px;padding:14px;margin-bottom:24px;"><div style="font-size:10px;color:#A8A29E;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px;font-weight:700;">Notes</div><div style="font-size:13px;color:#92400E;line-height:1.6;">${a.notes}</div></div>`:''}
-
-    <div style="margin-bottom:20px;">
-      <h2 style="font-size:13px;font-weight:700;color:#451A03;text-transform:uppercase;letter-spacing:0.07em;border-bottom:2px solid #FEF3C7;padding-bottom:8px;margin-bottom:4px;">Job Checklist — ${done} of ${STEPS.length} complete</h2>
-      ${stepsHtml}
-    </div>
-
-    ${photosHtml}
-    ${pdfsHtml}
-    ${otherDocsHtml}
-
-    <div style="margin-top:40px;padding-top:16px;border-top:1px solid #E7E5E4;font-size:11px;color:#A8A29E;text-align:center;line-height:1.8;">
-      Home Assessment Scheduler &nbsp;&bull;&nbsp; By Aaron Osorio &nbsp;&bull;&nbsp; Generated ${new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})}
-    </div>
-  </body></html>`);
-  win.document.close();
 }
-
-/* ═══ WEEK VIEW — 2 HOUR BLOCKS ═══ */
-function getWeekDays(offset){
-  const now=new Date();const dow=now.getDay();const mon=new Date(now);
-  mon.setDate(now.getDate()-(dow===0?6:dow-1)+offset*7);
-  return Array.from({length:5},(_,i)=>{const d=new Date(mon);d.setDate(mon.getDate()+i);return d;});
-}
-function goToday(){weekOffset=0;renderWeek();}
-function changeWeek(d){weekOffset+=d;renderWeek();}
-
-function renderWeek(){
-  const days=getWeekDays(weekOffset);
-  const todayStr=new Date().toISOString().split('T')[0];
-  document.getElementById('week-label').textContent=
-    days[0].toLocaleDateString('en-US',{month:'long',day:'numeric'})+' – '+
-    days[4].toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
-  const dayNames=['Mon','Tue','Wed','Thu','Fri'];
-  let html='<div class="wh"></div>';
-  days.forEach((d,i)=>{
-    const ds=d.toISOString().split('T')[0];
-    html+=`<div class="wh ${ds===todayStr?'today-col':''}"><div class="wh-day">${dayNames[i]}</div><div class="wh-date">${d.getMonth()+1}/${d.getDate()}</div></div>`;
+function previewImg(src){window.open(src,'_blank');}
+function dOver(e){e.preventDefault();e.currentTarget.classList.add('over');}
+function dLeave(e){e.currentTarget.classList.remove('over');}
+function dDrop(e){e.preventDefault();e.currentTarget.classList.remove('over');processFiles(Array.from(e.dataTransfer.files));}
+function handleFiles(e){processFiles(Array.from(e.target.files));}
+function processFiles(files){
+  const a=appointments.find(x=>x.id===currentApptId);
+  if(!a)return;
+  if(!a.files)a.files=[];
+  let done=0;
+  files.forEach(file=>{
+    const r=new FileReader();
+    r.onload=ev=>{
+      a.files.push({name:file.name,type:file.type,data:ev.target.result});
+      if(++done===files.length){save();renderFileGrid(a);showToast(`${files.length} file(s) added`);}
+    };
+    r.readAsDataURL(file);
   });
-  TIMES.forEach(t=>{
-    html+=`<div class="wtime">${t}</div>`;
-    days.forEach(d=>{
-      const ds=d.toISOString().split('T')[0];
-      const isToday=ds===todayStr;
-      const appt=appts.find(a=>a.date===ds&&a.time===t);
-      const isCancelled=appt&&appt.cancelled;
-      const isRescheduled=appt&&appt.rescheduled&&!appt.cancelled;
-      let cls=`wslot${isToday?' today-col':''}`;
-      if(appt){cls+=isCancelled?' cancelled-slot':isRescheduled?' rescheduled-slot':' has-appt';}
-      const clickAttr=appt?`onclick="openTicket(${appt.id})"`:'' ;
-      let inner=appt?`<div class="slot-text">${appt.last}, ${appt.first}</div><div class="slot-sub">${appt.time} · 2hrs${isCancelled?' · Cancelled':isRescheduled?' · Rescheduled':''}</div>`:'';
-      html+=`<div class="${cls}" ${clickAttr}>${inner}</div>`;
+}
+function removeFile(apptId,idx){
+  const a=appointments.find(x=>x.id===apptId);
+  if(a&&a.files){a.files.splice(idx,1);save();renderFileGrid(a);}
+}
+
+// ═══════════════════════════════════════════
+// RESCHEDULE / CANCEL / READY
+// ═══════════════════════════════════════════
+function openReschedule(){closeModal('detailModal');openModal('reschedModal');}
+function quickReschedule(id){currentApptId=id;openModal('reschedModal');}
+function confirmReschedule(){
+  const d=document.getElementById('rsDate').value;
+  if(!d){showToast('Please pick a date');return;}
+  const a=appointments.find(x=>x.id===currentApptId);
+  if(a){a.prevDate=a.date;a.prevTime=a.time;a.date=d;a.time=document.getElementById('rsTime').value;
+    a.status='rescheduled';a.rescheduleReason=document.getElementById('rsReason').value;
+    save();closeModal('reschedModal');showToast('📅 Rescheduled');}
+}
+function openCancel(){closeModal('detailModal');openModal('cancelModal');}
+function quickCancel(id){currentApptId=id;openModal('cancelModal');}
+function confirmCancel(){
+  const r=document.getElementById('cancelReason').value.trim();
+  if(!r){showToast('Please enter a reason');return;}
+  const a=appointments.find(x=>x.id===currentApptId);
+  if(a){a.status='cancelled';a.cancelReason=r;save();closeModal('cancelModal');showToast('Cancelled');}
+}
+function markReady(){
+  const a=appointments.find(x=>x.id===currentApptId);
+  if(a){a.status='ready';save();closeModal('detailModal');showToast('✅ Marked Ready');}
+}
+function markReadyById(id){
+  const a=appointments.find(x=>x.id===id);
+  if(a){a.status='ready';save();showToast('✅ Marked Ready');closeMenus();}
+}
+
+// ═══════════════════════════════════════════
+// PRINT TICKET
+// ═══════════════════════════════════════════
+function printTicket(){printTicketById(currentApptId);}
+function printTicketById(id){
+  const a=appointments.find(x=>x.id===id);
+  if(!a)return;
+  const photos=(a.files||[]).filter(f=>f.type&&f.type.startsWith('image/'));
+  const html=`
+  <style>
+    @page{margin:10mm} body{font-family:'Inter',sans-serif;margin:0}
+    .ticket{padding:10mm}
+    h1{font-size:22pt;color:#6B2D0F;margin-bottom:4px}
+    .sub{font-size:9pt;color:#9C7B6B;margin-bottom:14px}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+    .item{background:#FDF8F4;padding:8px 12px;border-radius:6px;border:1px solid #E8DDD4}
+    .lbl{font-size:7pt;text-transform:uppercase;letter-spacing:.06em;color:#9C7B6B;font-weight:700}
+    .val{font-size:11pt;font-weight:700;margin-top:2px}
+    .cl-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #E8DDD4;font-size:10pt}
+    .cb{width:13px;height:13px;border:2px solid #6B2D0F;border-radius:3px;display:inline-block;text-align:center;line-height:11px;font-size:9pt}
+    .cl-sec{font-size:7pt;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#9C7B6B;padding:8px 0 3px}
+    .photo-page{page-break-before:always}
+    .photo-full{width:100%;height:100vh;object-fit:cover;display:block}
+  </style>
+  <div class="ticket">
+    <h1>${a.lastName}, ${a.firstName}</h1>
+    <div class="sub">Home Energy Assessment · ${new Date().toLocaleDateString()}</div>
+    <div class="grid">
+      <div class="item"><div class="lbl">Date</div><div class="val">${fmtDate(a.date)}</div></div>
+      <div class="item"><div class="lbl">Time</div><div class="val">${a.time||'—'}</div></div>
+      <div class="item"><div class="lbl">Address</div><div class="val">${a.address||'—'}</div></div>
+      <div class="item"><div class="lbl">Phone</div><div class="val">${a.phone||'—'}</div></div>
+      <div class="item"><div class="lbl">Status</div><div class="val">${a.status.toUpperCase()}</div></div>
+      <div class="item"><div class="lbl">Email</div><div class="val" style="font-size:9pt">${a.email||'—'}</div></div>
+    </div>
+    ${a.notes?`<div class="item" style="margin-bottom:14px"><div class="lbl">Notes</div><div style="font-size:10pt;margin-top:4px">${a.notes}</div></div>`:''}
+    <div style="font-size:8pt;text-transform:uppercase;letter-spacing:.08em;color:#6B2D0F;font-weight:800;margin-bottom:6px">Job Checklist</div>
+    ${CHECKLIST.map(item=>{
+      if(item.section)return`<div class="cl-sec">${item.section}</div>`;
+      const ch=a.checklist?.[item.id];
+      return`<div class="cl-row"><div class="cb">${ch?'✓':''}</div>${item.label}</div>`;
+    }).join('')}
+  </div>
+  ${photos.map((f,i)=>`
+    <div class="photo-page">
+      <img class="photo-full" src="${f.data}">
+      <div style="padding:3mm;font-size:8pt;color:#9C7B6B">${f.name} · ${a.lastName}, ${a.firstName} · ${fmtDate(a.date)}</div>
+    </div>`).join('')}`;
+  const w=window.open('','_blank');
+  w.document.write(html);w.document.close();
+  w.onload=()=>w.print();
+}
+
+// ═══════════════════════════════════════════
+// WEEK VIEW
+// ═══════════════════════════════════════════
+let weekOffset=0;
+function renderWeekView(){
+  const al=document.getElementById('apptList');
+  if(al){al.innerHTML='';al.style.display='none';}
+  const now=new Date();
+  now.setDate(now.getDate()+weekOffset*7);
+  const start=new Date(now);start.setDate(now.getDate()-now.getDay());
+  const days=Array.from({length:7},(_,i)=>{const d=new Date(start);d.setDate(start.getDate()+i);return d;});
+  const dayNames=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const hours=['7 AM','8 AM','9 AM','10 AM','11 AM','12 PM','1 PM','2 PM','3 PM','4 PM','5 PM','6 PM','7 PM','8 PM'];
+  const hNums=[7,8,9,10,11,12,13,14,15,16,17,18,19,20];
+
+  const lt=document.getElementById('listTitle');
+  if(lt)lt.style.display='none';
+
+  document.getElementById('mainArea').innerHTML=`
+  <div class="week-nav">
+    <button class="btn btn-outline btn-sm" onclick="weekOffset--;renderWeekView()">← Prev</button>
+    <h2>${days[0].toLocaleDateString()} – ${days[6].toLocaleDateString()}</h2>
+    <button class="btn btn-outline btn-sm" onclick="weekOffset=0;renderWeekView()">Today</button>
+    <button class="btn btn-outline btn-sm" onclick="weekOffset++;renderWeekView()">Next →</button>
+  </div>
+  <table class="week-table">
+    <thead><tr><th></th>${dayNames.map((n,i)=>`<th>${n}<br><span style="font-weight:400;opacity:0.75">${days[i].getMonth()+1}/${days[i].getDate()}</span></th>`).join('')}</tr></thead>
+    <tbody>${hours.map((h,hi)=>{
+      const hNum=hNums[hi];
+      return`<tr><td class="time-col">${h}</td>${days.map(d=>{
+        const ds=d.toISOString().split('T')[0];
+        const evs=appointments.filter(a=>{
+          if(a.date!==ds)return false;
+          if(!a.time)return false;
+          const t=a.time;
+          const h12=parseInt(t);
+          const isPM=t.includes('PM')&&h12!==12;
+          const isAM12=t.includes('AM')&&h12===12;
+          const h24=isPM?h12+12:isAM12?0:h12;
+          return h24===hNum;
+        });
+        return`<td>${evs.map(a=>`<div class="week-event ev-${a.status}" onclick="openDetail('${a.id}')">${a.lastName}</div>`).join('')}</td>`;
+      }).join('')}</tr>`;
+    }).join('')}</tbody>
+  </table>`;
+}
+
+// ═══════════════════════════════════════════
+// CHECKLIST VIEW
+// ═══════════════════════════════════════════
+function renderChecklistView(){
+  document.getElementById('mainArea').innerHTML=`
+  <div style="max-width:580px">
+    <div class="section-title">✅ Per-Job Checklist Template</div>
+    <div style="background:var(--surface);border-radius:var(--radius-lg);padding:20px;border:1.5px solid var(--border);box-shadow:var(--shadow-sm)">
+      ${CHECKLIST.map(item=>{
+        if(item.section)return`<div class="check-section-hdr">${item.section}</div>`;
+        return`<div class="check-row" onclick="this.classList.toggle('done');this.querySelector('.check-box').classList.toggle('checked');this.querySelector('.check-box').textContent=this.classList.contains('done')?'✓':''">
+          <div class="check-box"></div><span class="check-label">${item.label}</span></div>`;
+      }).join('')}
+      <div style="margin-top:16px;font-size:0.75rem;color:var(--text-3)">
+        This is a reference template. Per-appointment checklists live inside each appointment card.
+      </div>
+    </div>
+  </div>`;
+}
+
+// ═══════════════════════════════════════════
+// MAP VIEW
+// ═══════════════════════════════════════════
+let mapInst=null,myLL=null,myMark=null,apptMarks=[],routeLayer=null,geoCache={},routeId=null;
+
+function renderMapView(){
+  document.getElementById('mainArea').innerHTML=`
+  <div class="map-layout">
+    <div id="mapEl"></div>
+    <div class="map-panel">
+      <div class="map-panel-hdr">📍 Clients — Closest First</div>
+      <div class="map-loc-bar">
+        <div class="loc-dot wait" id="locDot"></div>
+        <span id="locTxt">Getting your location...</span>
+      </div>
+      <div class="route-bar" id="routeBar">
+        <div style="font-weight:800;font-size:0.82rem;color:var(--brand)" id="routeTitle"></div>
+        <div class="route-stats">
+          <div class="route-stat"><div class="rs-val" id="rDist">—</div><div class="rs-lbl">Miles</div></div>
+          <div class="route-stat"><div class="rs-val" id="rTime">—</div><div class="rs-lbl">Est. Drive</div></div>
+          <div class="route-stat"><div class="rs-val" id="rAddr" style="font-size:0.65rem;line-height:1.2">—</div><div class="rs-lbl">Destination</div></div>
+        </div>
+        <div style="display:flex;gap:5px;margin-top:8px">
+          <button class="btn btn-success btn-sm" style="flex:1" onclick="openGMaps()">🗺️ Google Maps</button>
+          <button class="btn btn-outline btn-sm" onclick="clearRoute()">✕</button>
+        </div>
+      </div>
+      <div class="map-client-scroll" id="mapClientScroll">
+        <div style="padding:20px;text-align:center;color:var(--text-3);font-size:0.82rem">Locating clients...</div>
+      </div>
+    </div>
+  </div>`;
+
+  setTimeout(()=>{initMap();startGeo();},100);
+}
+
+function initMap(){
+  if(mapInst){mapInst.remove();mapInst=null;}
+  mapInst=L.map('mapEl').setView([45.5231,-122.6765],11);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+    attribution:'© OpenStreetMap contributors',maxZoom:19
+  }).addTo(mapInst);
+  plotAll();
+}
+
+function startGeo(){
+  if(!navigator.geolocation){setLoc('err','Location not supported');return;}
+  navigator.geolocation.watchPosition(pos=>{
+    myLL=[pos.coords.latitude,pos.coords.longitude];
+    setLoc('ok',`Your location (±${Math.round(pos.coords.accuracy)}m)`);
+    if(!myMark){
+      const ic=L.divIcon({className:'',html:`<div style="width:16px;height:16px;background:#16A34A;border:3px solid #fff;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,.4)"></div>`,iconSize:[16,16],iconAnchor:[8,8]});
+      myMark=L.marker(myLL,{icon:ic,zIndexOffset:1000}).addTo(mapInst).bindPopup('<b style="color:#16A34A">📍 You</b>');
+      mapInst.setView(myLL,12);
+    } else myMark.setLatLng(myLL);
+    updateDists();
+  },()=>setLoc('err','Location denied'),{enableHighAccuracy:true,maximumAge:10000});
+}
+
+function setLoc(st,msg){
+  const d=document.getElementById('locDot'),t=document.getElementById('locTxt');
+  if(!d||!t)return;
+  d.className='loc-dot'+(st==='ok'?'':st==='err'?' err':' wait');
+  t.textContent=msg;
+}
+
+async function geocode(addr){
+  if(!addr)return null;
+  if(geoCache[addr])return geoCache[addr];
+  try{
+    const r=await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(addr+', Oregon, USA')}&format=json&limit=1`);
+    const d=await r.json();
+    if(d&&d[0]){const ll=[parseFloat(d[0].lat),parseFloat(d[0].lon)];geoCache[addr]=ll;return ll;}
+  }catch{}
+  return null;
+}
+
+function haversine(a,b){
+  const R=3958.8,dLat=(b[0]-a[0])*Math.PI/180,dLon=(b[1]-a[1])*Math.PI/180;
+  const x=Math.sin(dLat/2)**2+Math.cos(a[0]*Math.PI/180)*Math.cos(b[0]*Math.PI/180)*Math.sin(dLon/2)**2;
+  return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));
+}
+function driveEst(mi){const m=Math.round(mi/25*60);return m<60?`${m}m`:`${Math.floor(m/60)}h${m%60}m`;}
+
+async function plotAll(){
+  apptMarks.forEach(m=>mapInst&&mapInst.removeLayer(m));
+  apptMarks=[];
+  const active=appointments.filter(a=>a.status!=='cancelled'&&a.address);
+  for(const a of active){
+    const ll=await geocode(a.address);
+    if(!ll||!mapInst)continue;
+    a._ll=ll;
+    const col=a.status==='ready'?'#16A34A':a.status==='rescheduled'?'#D97706':'#6B2D0F';
+    const ic=L.divIcon({className:'',html:`<div style="width:13px;height:13px;background:${col};border:2px solid #fff;border-radius:50%;box-shadow:0 2px 5px rgba(0,0,0,.35)"></div>`,iconSize:[13,13],iconAnchor:[6,6]});
+    const m=L.marker(ll,{icon:ic}).addTo(mapInst);
+    m.bindPopup(`
+      <div class="popup-name">${a.lastName}, ${a.firstName}</div>
+      <div class="popup-row">📅 ${fmtDate(a.date)}${a.time?' @ '+a.time:''}</div>
+      <div class="popup-row">📍 ${a.address}</div>
+      <div class="popup-row" id="pp-${a.id}" style="color:#16A34A;font-weight:700"></div>
+      <div class="popup-actions">
+        <button class="popup-btn popup-btn-detail" onclick="openDetail('${a.id}');document.querySelectorAll('.leaflet-popup-close-button').forEach(b=>b.click())">Details</button>
+        <button class="popup-btn popup-btn-route" onclick="showRoute('${a.id}')">🗺️ Route</button>
+      </div>`);
+    apptMarks.push(m);
+  }
+  updateDists();
+}
+
+function updateDists(){
+  const active=appointments.filter(a=>a.status!=='cancelled'&&a.address&&a._ll);
+  if(myLL){
+    active.forEach(a=>{a._dist=haversine(myLL,a._ll);a._drive=driveEst(a._dist);});
+    active.sort((a,b)=>(a._dist||999)-(b._dist||999));
+  }
+  renderMapCards(active);
+}
+
+function renderMapCards(list){
+  const el=document.getElementById('mapClientScroll');
+  if(!el)return;
+  if(!list.length){el.innerHTML=`<div style="padding:20px;text-align:center;color:var(--text-3);font-size:0.82rem">No active appointments with addresses.</div>`;return;}
+  el.innerHTML=list.map((a,i)=>`
+    <div class="map-card" onclick="focusMap('${a.id}')">
+      <div class="mc-name"><span class="mc-rank">${i+1}</span>${a.lastName}, ${a.firstName}</div>
+      ${myLL&&a._dist!==undefined?`
+        <div class="mc-dist">📏 ${a._dist.toFixed(1)} mi · 🚗 ~${a._drive}</div>`
+        :`<div class="mc-dist" style="color:var(--text-3)">Locating...</div>`}
+      <div class="mc-addr">📍 ${a.address}</div>
+      <div class="mc-btns">
+        <button class="btn btn-primary btn-xs" style="flex:1" onclick="event.stopPropagation();showRoute('${a.id}')">🗺️ Route</button>
+        <button class="btn btn-outline btn-xs" style="flex:1" onclick="event.stopPropagation();openDetail('${a.id}')">Details</button>
+      </div>
+    </div>`).join('');
+}
+
+function focusMap(id){
+  const a=appointments.find(x=>x.id===id);
+  if(!a||!a._ll||!mapInst)return;
+  mapInst.setView(a._ll,15);
+  apptMarks.forEach(m=>{if(Math.abs(m.getLatLng().lat-a._ll[0])<0.0001)m.openPopup();});
+}
+
+function showRoute(id){
+  const a=appointments.find(x=>x.id===id);
+  if(!a||!a._ll){showToast('Address not located yet');return;}
+  routeId=id;
+  if(routeLayer){mapInst.removeLayer(routeLayer);routeLayer=null;}
+  if(myLL){
+    routeLayer=L.polyline([myLL,a._ll],{color:'#E87A2A',weight:4,opacity:0.8,dashArray:'8,6'}).addTo(mapInst);
+    mapInst.fitBounds(routeLayer.getBounds(),{padding:[50,50]});
+    const dist=haversine(myLL,a._ll);
+    document.getElementById('routeBar').classList.add('on');
+    document.getElementById('routeTitle').textContent=`Route → ${a.lastName}, ${a.firstName}`;
+    document.getElementById('rDist').textContent=dist.toFixed(1);
+    document.getElementById('rTime').textContent=driveEst(dist);
+    document.getElementById('rAddr').textContent=a.address;
+  } else{showToast('Waiting for your location...');mapInst.setView(a._ll,14);}
+}
+
+function clearRoute(){
+  if(routeLayer&&mapInst){mapInst.removeLayer(routeLayer);routeLayer=null;}
+  document.getElementById('routeBar').classList.remove('on');
+  routeId=null;
+}
+
+function openGMaps(){
+  if(!routeId)return;
+  const a=appointments.find(x=>x.id===routeId);
+  if(!a)return;
+  const dest=encodeURIComponent(a.address);
+  const orig=myLL?`${myLL[0]},${myLL[1]}`:'';
+  window.open(orig?`https://www.google.com/maps/dir/${orig}/${dest}`:`https://www.google.com/maps/search/${dest}`,'_blank');
+}
+
+// ═══════════════════════════════════════════
+// EXCEL IMPORT
+// ═══════════════════════════════════════════
+function xlDrop(e){e.preventDefault();const f=e.dataTransfer.files[0];if(f)loadExcelFile(f);}
+function loadExcel(e){loadExcelFile(e.target.files[0]);}
+function loadExcelFile(file){
+  const r=new FileReader();
+  r.onload=ev=>{
+    const wb=XLSX.read(ev.target.result,{type:'array',cellDates:true});
+    const sheet=wb.Sheets[wb.SheetNames[0]];
+    const rows=XLSX.utils.sheet_to_json(sheet,{header:1,defval:''});
+    let hi=-1;
+    rows.forEach((r,i)=>{const j=r.join(' ').toLowerCase();if(j.includes('client last')||j.includes('appt date'))hi=i;});
+    if(hi===-1){showToast('Could not find header row');return;}
+    const hdrs=rows[hi].map(h=>String(h).toLowerCase().trim());
+    const data=rows.slice(hi+1).filter(r=>r.some(c=>c!==''));
+    xlRows=data.map((r,i)=>{
+      const get=kws=>{for(const kw of kws){const idx=hdrs.findIndex(h=>h.includes(kw));if(idx!==-1&&r[idx]!=='')return String(r[idx]);}return'';};
+      const cn=get(['client last','last']);let ln='',fn='';
+      if(cn.includes(','))([ln,fn]=cn.split(',').map(s=>s.trim()));else ln=cn;
+      let date=get(['appt date','date']);
+      if(date&&date.includes('/')){const[m,d,y]=date.split('/');date=`${y.length===4?y:'20'+y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`;}
+      return{_idx:i,_status:'made',lastName:ln,firstName:fn,address:get(['address']),
+        phone:get(['phone']),date,time:get(['appt time','time']),notes:get(['notes'])};
+    }).filter(r=>r.lastName||r.firstName);
+    renderXlPreview();
+  };
+  r.readAsArrayBuffer(file);
+}
+function renderXlPreview(){
+  const p=document.getElementById('xlPreview');
+  if(!xlRows.length){p.innerHTML='<p style="color:var(--text-3)">No data rows found.</p>';return;}
+  p.innerHTML=`<div style="font-weight:800;font-size:0.85rem;margin-bottom:10px;color:var(--brand)">${xlRows.length} rows found — confirm each:</div>`+
+  xlRows.map((r,i)=>`
+    <div class="xl-row" id="xlr_${i}">
+      <div class="xr-name">${r.lastName}${r.firstName?', '+r.firstName:''}</div>
+      <div class="xr-meta">📅 ${r.date||'—'} ${r.time?'@ '+r.time:''} · 📍 ${r.address||'—'}</div>
+      <div class="xl-type-btns">
+        <button class="xl-type-btn sel-made" onclick="setXlType(${i},'made',this)">📝 Appointment Made</button>
+        <button class="xl-type-btn" onclick="setXlType(${i},'confirmed',this)">✅ Confirmed</button>
+        <button class="xl-type-btn" onclick="setXlType(${i},'skip',this)">⏭ Skip</button>
+      </div>
+    </div>`).join('');
+  document.getElementById('xlActions').style.display='flex';
+}
+function setXlType(i,type,btn){
+  xlRows[i]._status=type;
+  document.getElementById('xlr_'+i).querySelectorAll('.xl-type-btn').forEach(b=>b.className='xl-type-btn');
+  if(type==='made')btn.classList.add('sel-made');
+  else if(type==='confirmed')btn.classList.add('sel-conf');
+}
+function importExcelRows(){
+  const rows=xlRows.filter(r=>r._status!=='skip');
+  if(!rows.length){showToast('No rows to import');return;}
+  rows.forEach(r=>{
+    appointments.push({
+      id:Date.now().toString()+Math.random().toString(36).slice(2),
+      lastName:r.lastName,firstName:r.firstName,address:r.address,
+      phone:r.phone,email:'',date:r.date,time:r.time,notes:r.notes,
+      status:r._status==='confirmed'?'ready':'active',
+      appointmentType:r._status,checklist:{},files:[],
+      createdAt:new Date().toISOString()
     });
   });
-  document.getElementById('week-grid').innerHTML=html;
+  save();closeModal('importExcelModal');
+  document.getElementById('xlPreview').innerHTML='';
+  document.getElementById('xlActions').style.display='none';
+  xlRows=[];
+  showToast(`✅ Imported ${rows.length} appointment(s)`);
 }
 
-renderList();updateStats();
+// ═══════════════════════════════════════════
+// BACKUP
+// ═══════════════════════════════════════════
+function exportBackup(){
+  const b=new Blob([JSON.stringify(appointments,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);
+  a.download=`hea_backup_${new Date().toISOString().split('T')[0]}.json`;a.click();
+}
+function importBackup(){
+  const i=document.createElement('input');i.type='file';i.accept='.json';
+  i.onchange=e=>{
+    const r=new FileReader();
+    r.onload=ev=>{try{appointments=JSON.parse(ev.target.result);save();showToast('Backup restored!');}catch{showToast('Invalid file');}};
+    r.readAsText(e.target.files[0]);
+  };i.click();
+}
+
+// ═══════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+// ═══════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════
+updateStats();
+renderList();
+fillTimeSelect('nTime');
+fillTimeSelect('rsTime');
 </script>
 </body>
 </html>
