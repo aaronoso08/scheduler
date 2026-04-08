@@ -324,7 +324,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     <div><div class="topbar-title">Home Assessment Scheduler</div><div class="topbar-sub">By Aaron Osorio</div></div>
   </div>
   <div class="topbar-actions">
-    <button class="btn btn-ghost btn-sm" id="langToggleBtn" onclick="toggleLang()" style="font-size:.78rem;font-weight:800;letter-spacing:.04em">ES</button>
+    <div class="lang-toggle" style="display:flex;gap:3px;">
+      <button class="lang-btn" id="lb-en" onclick="setLang('en')" style="font-size:.72rem;font-weight:700;padding:3px 9px;border-radius:5px;border:1px solid rgba(255,255,255,.25);background:var(--accent);color:#fff;cursor:pointer;font-family:'DM Sans',sans-serif;letter-spacing:.04em;">EN</button>
+      <button class="lang-btn" id="lb-es" onclick="setLang('es')" style="font-size:.72rem;font-weight:700;padding:3px 9px;border-radius:5px;border:1px solid rgba(255,255,255,.25);background:transparent;color:rgba(255,255,255,.55);cursor:pointer;font-family:'DM Sans',sans-serif;letter-spacing:.04em;">ES</button>
+    </div>
     <button class="btn btn-ghost btn-sm" id="btnImport" onclick="openModal('importExcelModal')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg><span id="lblImport">Import</span>
     </button>
@@ -680,12 +683,15 @@ const TRANS={
   }
 };
 function T(k){return(TRANS[lang]||TRANS.en)[k]||TRANS.en[k]||k;}
-function toggleLang(){
-  lang=lang==='en'?'es':'en';
+function setLang(l){
+  lang=l;
   localStorage.setItem('hea_lang',lang);
+  document.getElementById('lb-en').style.background=l==='en'?'var(--accent)':'transparent';
+  document.getElementById('lb-en').style.color=l==='en'?'#fff':'rgba(255,255,255,.55)';
+  document.getElementById('lb-es').style.background=l==='es'?'var(--accent)':'transparent';
+  document.getElementById('lb-es').style.color=l==='es'?'#fff':'rgba(255,255,255,.55)';
   applyLang();
   renderList();
-  // Re-render current view if week/checklist
   const activeNav=document.querySelector('.snbtn.active');
   if(activeNav){
     const v=activeNav.id.replace('nav-','');
@@ -694,21 +700,115 @@ function toggleLang(){
   }
 }
 function applyLang(){
-  const btn=document.getElementById('langToggleBtn');
-  if(btn)btn.textContent=lang==='en'?'ES':'EN';
-  const ids={
-    lblImport:'import',lblExport:'export',lblRestore:'restore',lblNew:'newBtn',
-    lblDashboard:'dashboard',lblWeek:'week',lblMap:'map',lblChecklist:'checklist',
-    lblStatActive:'statActive',lblStatReady:'statReady',lblStatSubmitted:'statSubmitted',lblStatTotal:'statTotal',lblStatCancelled:'statCancelled',
-    lblNewApptTitle:'newApptTitle',lblNLast:'lastName',lblNFirst:'firstName',lblNAddr:'address',lblNPhone:'phone',lblNEmail:'email',lblNDate:'date',lblNTime:'time',lblNZillow:'zillowLink',lblNNotes:'notes',
-    btnNCancel:'cancel',btnNSave:'saveAppt',
-    pillAll:'filterAll',pillActive:'filterActive',pillRescheduled:'filterRescheduled',pillReady:'filterReady',pillSubmitted:'filterSubmitted',pillCancelled:'filterCancelled',
-  };
-  Object.entries(ids).forEach(([id,key])=>{const el=document.getElementById(id);if(el)el.textContent=T(key);});
-  const si=document.getElementById('searchInput');if(si)si.placeholder=T('searchPlaceholder');
-  const lt=document.getElementById('listTitle');if(lt)lt.textContent=T('allAppts');
+  const s=(id,k)=>{const el=document.getElementById(id);if(el)el.textContent=T(k);};
+  const sp=(id,k)=>{const el=document.getElementById(id);if(el)el.placeholder=T(k);};
+  const si=(id,k)=>{const el=document.getElementById(id);if(el)el.innerHTML=T(k);};
+
+  // Topbar buttons
+  s('lblImport','import');s('lblExport','export');s('lblRestore','restore');s('lblNew','newBtn');
   document.title=T('appTitle');
-  // topbar subtitle not translated (proper noun)
+  document.querySelector('.topbar-title').textContent=T('appTitle');
+
+  // Subnav
+  s('lblDashboard','dashboard');s('lblWeek','week');s('lblMap','map');s('lblChecklist','checklist');
+
+  // Stats
+  s('lblStatActive','statActive');s('lblStatReady','statReady');s('lblStatSubmitted','statSubmitted');s('lblStatTotal','statTotal');s('lblStatCancelled','statCancelled');
+
+  // Filter pills
+  s('pillAll','filterAll');s('pillActive','filterActive');s('pillRescheduled','filterRescheduled');
+  s('pillReady','filterReady');s('pillSubmitted','filterSubmitted');s('pillCancelled','filterCancelled');
+
+  // Search + list title
+  sp('searchInput','searchPlaceholder');
+  s('listTitle','allAppts');
+
+  // New appointment modal
+  s('lblNewApptTitle','newApptTitle');
+  s('lblNLast','lastName');s('lblNFirst','firstName');s('lblNAddr','address');
+  s('lblNPhone','phone');s('lblNEmail','email');s('lblNDate','date');s('lblNTime','time');
+  s('lblNZillow','zillowLink');s('lblNNotes','notes');
+  s('btnNCancel','cancel');s('btnNSave','saveAppt');
+  sp('nLast','lastName');sp('nFirst','firstName');
+
+  // Detail modal static text
+  s('dEditBtnTxt','editBtn');
+  // Detail modal buttons — re-render if open
+  const detailBtns=document.querySelector('.detail-btns');
+  if(detailBtns){
+    const btns=detailBtns.querySelectorAll('button');
+    const labels=[T('markReady'),T('markSubmitted'),T('print'),T('email'),T('reschedule'),T('cancel'),T('delete')];
+    // Just update span text nodes inside each button
+    btns.forEach((btn,i)=>{
+      const span=btn.querySelector('span')||btn.lastChild;
+      if(span&&span.nodeType===3){btn.lastChild.textContent=labels[i]||'';}
+    });
+  }
+
+  // Reschedule modal
+  const rm=document.getElementById('reschedModal');
+  if(rm){
+    const labels=rm.querySelectorAll('.flabel');
+    if(labels[0])labels[0].textContent=T('newDate');
+    if(labels[1])labels[1].textContent=T('newTime');
+    if(labels[2])labels[2].textContent=T('reason');
+    const btns=rm.querySelectorAll('button:not(.modal-close)');
+    if(btns[0])btns[0].textContent=T('cancel');
+    if(btns[1])btns[1].textContent=T('confirm');
+    const title=rm.querySelector('.modal-title');
+    if(title){const span=title.querySelector('span')||title.lastChild;if(span)span.textContent=' '+T('rescheduleTitle');}
+  }
+
+  // Cancel modal
+  const cm=document.getElementById('cancelModal');
+  if(cm){
+    const p=cm.querySelector('p');if(p)p.textContent=T('cancelNote');
+    const labels=cm.querySelectorAll('.flabel');if(labels[0])labels[0].textContent=T('cancelReason');
+    const btns=cm.querySelectorAll('button:not(.modal-close)');
+    if(btns[0])btns[0].textContent=T('goBack');
+    if(btns[1])btns[1].textContent=T('markCancelled');
+    const title=cm.querySelector('.modal-title');
+    if(title){const span=title.querySelector('span')||title.lastChild;if(span)span.textContent=' '+T('cancelApptTitle');}
+  }
+
+  // Delete modal
+  const dm=document.getElementById('deleteModal');
+  if(dm){
+    const title=dm.querySelector('.modal-title');
+    if(title){const span=title.querySelector('span')||title.lastChild;if(span)span.textContent=' '+T('deleteTitle');}
+    const p=dm.querySelector('p');if(p)p.textContent=T('deleteWarning');
+    const btns=dm.querySelectorAll('button:not(.modal-close)');
+    if(btns[0])btns[0].textContent=T('goBack');
+  }
+
+  // Edit form labels (inside detail modal)
+  const ef=document.getElementById('dEditForm');
+  if(ef){
+    const header=ef.querySelector('[style*="text-transform"]');
+    if(header)header.textContent=T('editApptDetails');
+    const labels=ef.querySelectorAll('.flabel');
+    const editLabels=[T('lastName'),T('firstName'),T('phone'),T('email'),T('address'),T('date'),T('time'),T('zillowLink'),T('notes')];
+    labels.forEach((l,i)=>{if(editLabels[i])l.textContent=editLabels[i];});
+    const saveBtnSpan=ef.querySelector('.btn-success span');
+    const saveBtn=ef.querySelector('.btn-success');
+    if(saveBtn){const txt=saveBtn.childNodes;txt.forEach(n=>{if(n.nodeType===3&&n.textContent.trim())n.textContent=T('saveChanges');});}
+  }
+
+  // Files/photos section in detail
+  const dsecs=document.querySelectorAll('.dsec');
+  if(dsecs.length>=1)dsecs[0].textContent=T('jobSteps');
+  if(dsecs.length>=2)dsecs[1].textContent=T('filesPhotos');
+
+  // Drop zone text
+  const dz=document.querySelector('.drop-zone p');if(dz)dz.textContent=T('tapUpload');
+
+  // Import Excel modal
+  const im=document.getElementById('importExcelModal');
+  if(im){
+    const title=im.querySelector('.modal-title span');if(title)title.textContent=T('importTitle');
+    const note=im.querySelector('p');if(note)note.textContent=T('importNote');
+    const dzp=im.querySelector('.dz-text');if(dzp)dzp.textContent=T('tapUploadXl');
+  }
 }
 // ── END BILINGUAL ──────────────────────────────────────────────────
 
@@ -1345,6 +1445,8 @@ function importBackup(){const i=document.createElement('input');i.type='file';i.
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2800);}
 
 updateStats();renderList();fillSel('nTime');fillSel('rsTime');fillSel('eTime');
+// Apply saved language on load
+setLang(lang);
 </script>
 </body>
 </html>
